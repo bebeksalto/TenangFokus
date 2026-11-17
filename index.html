@@ -1196,21 +1196,62 @@
     grid.appendChild(wrap);
   }
 
-  const detentTrack = document.getElementById('detentTrack');
+  // === DRAGGABLE MAGNETIC DETENT SLIDER (7 SNAP POINTS) ===
+  const magSlider = document.getElementById('magSlider');
+  const magFill = document.getElementById('magFill');
+  const magThumb = document.getElementById('magThumb');
+  const magTicks = document.getElementById('magTicks');
+  let currentDetent = 4;
+
   for (let i = 1; i <= 7; i++) {
-    const wrap = document.createElement('div');
-    wrap.className = 'detent-wrap' + (i <= 4 ? ' active' : '');
-    const sw = document.createElement('input');
-    sw.type = 'checkbox';
-    sw.setAttribute('switch', '');
-    sw.className = 'native-hit-switch';
-    sw.onpointerdown = () => {
-      feedback(0.75 + i * 0.08, 22);
-      document.getElementById('detentVal').textContent = `Level ${i}/7`;
-      Array.from(detentTrack.children).forEach((el, idx) => el.classList.toggle('active', idx < i));
-    };
-    wrap.appendChild(sw);
-    detentTrack.appendChild(wrap);
+    const dot = document.createElement('span');
+    dot.className = 'mag-tick' + (i <= currentDetent ? ' passed' : '');
+    magTicks.appendChild(dot);
+  }
+
+  function applyDetentUI(step, triggerSound) {
+    const pct = ((step - 1) / 6) * 100;
+    const visualPct = 8 + (pct * 0.84); // keeps thumb neatly inside track padding
+    magFill.style.width = visualPct + '%';
+    magThumb.style.left = visualPct + '%';
+    document.getElementById('detentVal').textContent = `Level ${step} / 7`;
+    Array.from(magTicks.children).forEach((el, idx) => el.classList.toggle('passed', idx < step));
+
+    if (triggerSound && step !== currentDetent) {
+      currentDetent = step;
+      feedback(0.75 + step * 0.08, 22);
+      const sw = document.getElementById('magSwitchInput');
+      if (sw) sw.checked = !sw.checked;
+    } else {
+      currentDetent = step;
+    }
+  }
+
+  function handleSliderPointer(clientX, isInitialTap) {
+    const rect = magSlider.getBoundingClientRect();
+    const ratio = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+    const nearestStep = Math.round(ratio * 6) + 1;
+    if (isInitialTap && nearestStep === currentDetent) {
+      feedback(0.75 + nearestStep * 0.08, 20);
+    }
+    applyDetentUI(nearestStep, true);
+  }
+
+  magSlider.addEventListener('pointerdown', (e) => {
+    magSlider.classList.add('dragging');
+    magSlider.setPointerCapture(e.pointerId);
+    handleSliderPointer(e.clientX, true);
+  });
+
+  magSlider.addEventListener('pointermove', (e) => {
+    if (!magSlider.classList.contains('dragging')) return;
+    handleSliderPointer(e.clientX, false);
+  });
+
+  const endSlide = () => magSlider.classList.remove('dragging');
+  magSlider.addEventListener('pointerup', endSlide);
+  magSlider.addEventListener('pointercancel', endSlide);
+  applyDetentUI(4, false);
   }
 
   document.getElementById('pulseSwitchInput').onpointerdown = () => {
