@@ -4,15 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta id="iosStatusBar" name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="TenangFokus">
-<meta name="theme-color" content="#0b0f17">
+<meta id="metaThemeColor" name="theme-color" content="#0b0f17">
 <link id="appleTouchIcon" rel="apple-touch-icon" sizes="180x180">
 <link id="appManifest" rel="manifest">
-<title>TenangFokus v.2.8 by rudymuda</title>
+<title>TenangFokus v.2.9 by rudymuda</title>
 <style>
   :root {
     --bg: #0b0f17; --surface: #131a26; --surface-2: #1c2536; --border: #273349;
+    --nav-bg: rgba(19, 26, 38, .96);
     --text: #f1f5f9; --muted: #94a3b8;
     --sky: #38bdf8; --sky-bg: rgba(56,189,248,.14);
     --indigo: #818cf8; --indigo-bg: rgba(129,140,248,.14);
@@ -20,20 +21,37 @@
     --amber: #fbbf24; --amber-bg: rgba(251,191,36,.14);
     --violet: #a78bfa; --violet-bg: rgba(167,139,250,.14);
     --rose: #fb7185; --rose-bg: rgba(251,113,133,.14);
+    --shadow: 0 4px 16px rgba(0,0,0,.28);
   }
+
+  /* BRIGHT MODE PALETTE */
+  body.light-mode {
+    --bg: #f1f5f9; --surface: #ffffff; --surface-2: #f8fafc; --border: #e2e8f0;
+    --nav-bg: rgba(255, 255, 255, .94);
+    --text: #0f172a; --muted: #64748b;
+    --sky: #0284c7; --sky-bg: rgba(2,132,199,.12);
+    --indigo: #4f46e5; --indigo-bg: rgba(79,70,229,.12);
+    --emerald: #059669; --emerald-bg: rgba(5,150,105,.12);
+    --amber: #d97706; --amber-bg: rgba(217,119,6,.12);
+    --violet: #7c3aed; --violet-bg: rgba(124,58,237,.12);
+    --rose: #e11d48; --rose-bg: rgba(225,29,72,.12);
+    --shadow: 0 2px 10px rgba(15,23,42,.05);
+  }
+
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
   body {
     margin: 0; background: var(--bg); color: var(--text);
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
     font-size: 14px; line-height: 1.5; padding-top: env(safe-area-inset-top);
+    transition: background .2s ease, color .2s ease;
   }
   .app-shell { min-height: 100vh; padding: 14px 16px 96px; }
   .sidebar { display: none; }
-  .mobile-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
-  .brand { display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 700; }
+  .mobile-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; gap: 6px; }
+  .brand { display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 700; }
   .brand-sub { font-size: 10px; color: var(--muted); font-weight: 500; display: block; line-height: 1.1; }
-  .brand-icon { width: 32px; height: 32px; border-radius: 10px; background: linear-gradient(135deg, var(--sky), var(--indigo)); display: flex; align-items: center; justify-content: center; color: #09111e; flex-shrink: 0; }
-  .status-pill { background: var(--surface); border: 1px solid var(--border); color: var(--muted); border-radius: 999px; padding: 6px 11px; font-size: 11px; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; cursor: pointer; user-select: none; }
+  .brand-icon { width: 30px; height: 30px; border-radius: 9px; background: linear-gradient(135deg, var(--sky), var(--indigo)); display: flex; align-items: center; justify-content: center; color: #ffffff; flex-shrink: 0; }
+  .status-pill { background: var(--surface); border: 1px solid var(--border); color: var(--muted); border-radius: 999px; padding: 6px 10px; font-size: 11px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; user-select: none; box-shadow: var(--shadow); }
   .status-pill.active { border-color: var(--emerald); color: var(--emerald); background: var(--emerald-bg); }
   .status-pill.warn { border-color: var(--amber); color: var(--amber); background: var(--amber-bg); }
   .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--amber); }
@@ -42,7 +60,7 @@
   .view { display: none; }
   .view.active { display: block; }
 
-  .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(19,26,38,.96); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-top: 1px solid var(--border); display: flex; padding: 6px 2px calc(6px + env(safe-area-inset-bottom)); z-index: 30; }
+  .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--nav-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-top: 1px solid var(--border); display: flex; padding: 6px 2px calc(6px + env(safe-area-inset-bottom)); z-index: 30; }
   .bottom-nav button { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 10px; font-weight: 600; background: transparent; color: var(--muted); border-radius: 10px; padding: 6px 2px; min-height: 52px; }
   .bottom-nav button.active[data-color="sky"] { color: var(--sky); }
   .bottom-nav button.active[data-color="indigo"] { color: var(--indigo); }
@@ -72,7 +90,7 @@
     .desktop-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; align-items: start; }
   }
 
-  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 18px; margin-bottom: 14px; position: relative; overflow: hidden; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 18px; margin-bottom: 14px; position: relative; overflow: hidden; box-shadow: var(--shadow); }
   .card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--card-accent, var(--sky)); }
   .accent-sky { --card-accent: var(--sky); }
   .accent-indigo { --card-accent: var(--indigo); }
@@ -84,23 +102,24 @@
   .card-title { font-size: 12px; font-weight: 700; color: var(--muted); letter-spacing: .5px; margin: 0 0 14px; display: flex; justify-content: space-between; align-items: center; text-transform: uppercase; }
   .row { display: flex; gap: 8px; align-items: center; }
 
-  button { background: var(--surface-2); color: var(--text); border: none; border-radius: 14px; padding: 10px 16px; font-size: 14px; font-weight: 600; min-height: 44px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; user-select: none; }
+  button { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); border-radius: 14px; padding: 10px 16px; font-size: 14px; font-weight: 600; min-height: 44px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; user-select: none; }
   button:active { transform: scale(.97); }
-  button.btn-sky { background: var(--sky); color: #07131d; }
-  button.btn-indigo { background: var(--indigo); color: #0b0e26; }
-  button.btn-emerald { background: var(--emerald); color: #051b11; }
-  button.btn-amber { background: var(--amber); color: #1c1302; }
-  button.btn-violet { background: var(--violet); color: #130b29; }
-  button.tonal-violet { background: var(--violet-bg); color: var(--violet); border: 1px solid rgba(167,139,250,.3); }
-  button.chip { min-height: 34px; padding: 6px 12px; font-size: 12px; border-radius: 999px; color: var(--muted); }
-  button.chip.selected { background: var(--sky-bg); color: var(--sky); border: 1px solid rgba(56,189,248,.4); }
-  button.chip.selected-indigo { background: var(--indigo-bg); color: var(--indigo); border: 1px solid rgba(129,140,248,.4); }
+  button.btn-sky { background: var(--sky); color: #ffffff; border: none; }
+  button.btn-indigo { background: var(--indigo); color: #ffffff; border: none; }
+  button.btn-emerald { background: var(--emerald); color: #ffffff; border: none; }
+  button.btn-amber { background: var(--amber); color: #ffffff; border: none; }
+  button.btn-violet { background: var(--violet); color: #ffffff; border: none; }
+  button.tonal-violet { background: var(--violet-bg); color: var(--violet); border: 1px solid rgba(124,58,237,.3); }
+  button.chip { min-height: 34px; padding: 6px 12px; font-size: 12px; border-radius: 999px; color: var(--muted); border: 1px solid var(--border); }
+  button.chip.selected { background: var(--sky-bg); color: var(--sky); border-color: var(--sky); }
+  button.chip.selected-indigo { background: var(--indigo-bg); color: var(--indigo); border-color: var(--indigo); }
+  .bottom-nav button, .side-btn, .icon-action { border: none; }
 
   input, select, textarea { width: 100%; background: var(--surface-2); color: var(--text); border: 1px solid var(--border); border-radius: 14px; padding: 11px 14px; font-size: 16px; outline: none; font-family: inherit; }
-  input:focus, select:focus, textarea:focus { border-color: var(--indigo); background: var(--bg); }
+  input:focus, select:focus, textarea:focus { border-color: var(--indigo); background: var(--surface); }
   textarea { resize: vertical; min-height: 82px; }
 
-  .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.72); backdrop-filter: blur(6px); display: none; align-items: center; justify-content: center; padding: 16px; z-index: 50; }
+  .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.65); backdrop-filter: blur(6px); display: none; align-items: center; justify-content: center; padding: 16px; z-index: 50; }
   .modal-backdrop.open { display: flex; }
   .modal-box { background: var(--surface); border: 1px solid var(--border); border-radius: 22px; padding: 20px; width: 100%; max-width: 440px; }
 
@@ -112,19 +131,19 @@
   .cal-nav-btn { min-height: 36px; padding: 6px 12px; border-radius: 10px; font-size: 13px; }
   .cal-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 11px; font-weight: 700; color: var(--muted); margin-bottom: 6px; }
   .cal-month-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
-  .cal-cell { min-height: 54px; background: var(--surface-2); border: 1px solid transparent; border-radius: 12px; padding: 6px 4px; display: flex; flex-direction: column; align-items: center; cursor: pointer; user-select: none; }
-  .cal-cell.other-month { opacity: .35; }
-  .cal-cell.today { border-color: var(--sky); }
+  .cal-cell { min-height: 54px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; padding: 6px 4px; display: flex; flex-direction: column; align-items: center; cursor: pointer; user-select: none; }
+  .cal-cell.other-month { opacity: .4; }
+  .cal-cell.today { border-color: var(--sky); border-width: 2px; }
   .cal-cell.selected { background: var(--indigo-bg); border-color: var(--indigo); }
   .cal-day-num { font-size: 12px; font-weight: 700; }
   .cal-dots { display: flex; gap: 3px; flex-wrap: wrap; justify-content: center; margin-top: 4px; }
   .cal-dot { width: 6px; height: 6px; border-radius: 50%; }
 
   .week-strip { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-bottom: 12px; }
-  .week-day-card { background: var(--surface-2); border-radius: 12px; padding: 8px 4px; text-align: center; border: 1px solid transparent; cursor: pointer; user-select: none; }
+  .week-day-card { background: var(--surface-2); border-radius: 12px; padding: 8px 4px; text-align: center; border: 1px solid var(--border); cursor: pointer; user-select: none; }
   .week-day-card.selected { border-color: var(--indigo); background: var(--indigo-bg); }
 
-  .event-card { background: var(--surface-2); border-radius: 14px; padding: 12px; margin-bottom: 8px; border-left: 4px solid var(--indigo); display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .event-card { background: var(--surface-2); border-radius: 14px; padding: 12px; margin-bottom: 8px; border: 1px solid var(--border); border-left: 4px solid var(--indigo); display: flex; justify-content: space-between; align-items: center; gap: 8px; }
   .icon-action { background: transparent; color: var(--muted); padding: 6px; min-height: 34px; width: 34px; border-radius: 10px; flex-shrink: 0; }
 
   .timer-num { font-size: 54px; font-weight: 700; text-align: center; margin: 10px 0; background: linear-gradient(90deg, var(--sky), var(--indigo)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-variant-numeric: tabular-nums; }
@@ -132,19 +151,19 @@
   .bar-chart-7d { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; align-items: end; height: 132px; padding-top: 18px; }
   .bar-col { display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; }
   .bar-val { font-size: 10px; color: var(--muted); margin-bottom: 4px; }
-  .bar-track { width: 100%; max-width: 30px; height: 84px; background: var(--surface-2); border-radius: 8px; display: flex; align-items: flex-end; overflow: hidden; }
+  .bar-track { width: 100%; max-width: 30px; height: 84px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; display: flex; align-items: flex-end; overflow: hidden; }
   .bar-fill { width: 100%; border-radius: 8px; transition: height .35s ease; }
   .bar-lbl { font-size: 10px; color: var(--muted); margin-top: 6px; white-space: nowrap; }
 
   .cat-chart { display: flex; flex-direction: column; gap: 12px; }
   .cat-head { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px; }
-  .cat-track { width: 100%; height: 10px; background: var(--surface-2); border-radius: 999px; overflow: hidden; }
+  .cat-track { width: 100%; height: 10px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 999px; overflow: hidden; }
   .cat-fill { height: 100%; border-radius: 999px; transition: width .35s ease; }
 
   .item-row { display: flex; align-items: center; gap: 12px; padding: 12px 2px; border-bottom: 1px solid var(--border); }
   .item-row:last-child { border-bottom: none; padding-bottom: 2px; }
   .check-circle { width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--muted); flex-shrink: 0; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-  .done .check-circle { background: var(--emerald); border-color: var(--emerald); color: #051b11; font-weight: 700; }
+  .done .check-circle { background: var(--emerald); border-color: var(--emerald); color: #ffffff; font-weight: 700; }
   .done .item-text { text-decoration: line-through; color: var(--muted); }
   .item-body { flex: 1; min-width: 0; cursor: pointer; }
   .item-meta { font-size: 11px; color: var(--muted); margin-top: 3px; display: flex; gap: 8px; flex-wrap: wrap; }
@@ -152,7 +171,7 @@
   .badge-mail { color: var(--sky); background: var(--sky-bg); padding: 1px 7px; border-radius: 6px; }
   .badge-streak { color: var(--emerald); background: var(--emerald-bg); padding: 2px 9px; border-radius: 999px; font-size: 11px; font-weight: 700; }
 
-  .stat-box { background: var(--surface-2); border-radius: 14px; padding: 12px; }
+  .stat-box { background: var(--surface-2); border: 1px solid var(--border); border-radius: 14px; padding: 12px; }
   .stat-label { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
   .stat-val { font-size: 16px; font-weight: 700; }
 
@@ -197,13 +216,13 @@
   .mag-thumb {
     position: absolute; top: 6px; bottom: 6px; width: 38px; border-radius: 12px;
     background: linear-gradient(135deg, var(--rose), var(--amber));
-    box-shadow: 0 4px 14px rgba(0,0,0,.45);
+    box-shadow: 0 4px 14px rgba(0,0,0,.35);
     display: flex; align-items: center; justify-content: center; gap: 3px;
     transform: translateX(-50%); left: 50%; pointer-events: none;
     transition: left .08s ease-out, transform .1s;
   }
   .mag-thumb::before, .mag-thumb::after {
-    content: ""; width: 2px; height: 14px; border-radius: 2px; background: rgba(11,15,23,.55);
+    content: ""; width: 2px; height: 14px; border-radius: 2px; background: rgba(255,255,255,.75);
   }
   .mag-slider.dragging .mag-fill,
   .mag-slider.dragging .mag-thumb { transition: none; }
@@ -212,7 +231,7 @@
   .pulse-wrap {
     position: relative; width: 100%; height: 104px; border-radius: 18px;
     background: radial-gradient(circle, var(--rose-bg), var(--surface-2));
-    border: 2px solid rgba(251,113,133,.45);
+    border: 2px solid rgba(225,29,72,.35);
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     color: var(--rose); font-weight: 700; overflow: hidden; user-select: none;
   }
@@ -255,7 +274,7 @@
         <div class="brand-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg></div>
         <div>
           TenangFokus
-          <span class="brand-sub">v.2.8 by rudymuda</span>
+          <span class="brand-sub">v.2.9 by rudymuda</span>
         </div>
       </div>
       <div class="side-menu">
@@ -286,6 +305,10 @@
       </div>
     </div>
     <div>
+      <div class="status-pill" style="width:100%;justify-content:center;margin-bottom:8px" onclick="toggleTheme()">
+        <span id="themeIconDesk">☀️</span>
+        <span id="themeTextDesk">Bright Mode</span>
+      </div>
       <div class="status-pill" style="width:100%;justify-content:center;margin-bottom:8px" id="syncBadgeDesk" onclick="openSyncModal()">
         <span class="dot"></span>
         <span id="syncTextDesk">Hubungkan Google</span>
@@ -300,13 +323,14 @@
   <main class="main-content">
     <header class="mobile-header">
       <div class="brand">
-        <div class="brand-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg></div>
+        <div class="brand-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg></div>
         <div>
           TenangFokus
-          <span class="brand-sub">v.2.8 by rudymuda</span>
+          <span class="brand-sub">v.2.9 by rudymuda</span>
         </div>
       </div>
-      <div class="row">
+      <div class="row" style="gap:5px">
+        <div class="status-pill" onclick="toggleTheme()" id="themeBtnMob">☀️</div>
         <div class="status-pill" id="syncBadgeMob" onclick="openSyncModal()">
           <span class="dot"></span>
           <span id="syncTextMob">Connect</span>
@@ -554,7 +578,7 @@
       </div>
     </div>
 
-    <!-- TAB 6: FIDGET (DRAGGABLE MAGNETIC SLIDER + TAPTIC BUBBLES + PULSE PAD) -->
+    <!-- TAB 6: FIDGET -->
     <div id="tab-fidget" class="view">
       <div class="desktop-grid-3">
         <div class="card accent-sky">
@@ -600,7 +624,7 @@
       </div>
     </div>
 
-    <div class="mobile-footer-credit">TenangFokus v.2.8 by rudymuda</div>
+    <div class="mobile-footer-credit">TenangFokus v.2.9 by rudymuda</div>
   </main>
 
   <nav class="bottom-nav">
@@ -632,6 +656,25 @@
 </div>
 
 <script>
+  // === 0. THEME ENGINE (DARK / BRIGHT MODE) ===
+  const THEME_KEY = 'tenangfokus_theme';
+  function applyTheme(mode) {
+    const isLight = mode === 'light';
+    document.body.classList.toggle('light-mode', isLight);
+    document.getElementById('themeIconDesk').textContent = isLight ? '🌙' : '☀️';
+    document.getElementById('themeTextDesk').textContent = isLight ? 'Dark Mode' : 'Bright Mode';
+    document.getElementById('themeBtnMob').textContent = isLight ? '🌙' : '☀️';
+    document.getElementById('metaThemeColor').setAttribute('content', isLight ? '#f1f5f9' : '#0b0f17');
+    document.getElementById('iosStatusBar').setAttribute('content', isLight ? 'default' : 'black-translucent');
+  }
+  function toggleTheme() {
+    const next = document.body.classList.contains('light-mode') ? 'dark' : 'light';
+    localStorage.setItem(THEME_KEY, next);
+    applyTheme(next);
+    feedback(1.1, 14);
+  }
+  applyTheme(localStorage.getItem(THEME_KEY) || 'dark');
+
   // === 1. GENERATE APP ICON & PWA MANIFEST ===
   (function generateAppIcon() {
     try {
@@ -675,7 +718,7 @@
     } catch (e) {}
   })();
 
-  // === 2. LOCAL DATE HELPERS (NO UTC DRIFT) ===
+  // === 2. LOCAL DATE HELPERS ===
   function getLocalTodayKey() {
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -684,7 +727,7 @@
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   }
 
-  const STORAGE_KEY = 'tenangfokus_v28_rudymuda';
+  const STORAGE_KEY = 'tenangfokus_v29_rudymuda';
   const GAS_URL_KEY = 'tenangfokus_gas_url';
   let gasUrl = localStorage.getItem(GAS_URL_KEY) || '';
 
@@ -796,7 +839,7 @@
     if (ambientGain && audioCtx) ambientGain.gain.setTargetAtTime(ambientVolume * 0.45, audioCtx.currentTime, 0.03);
   }
 
-  // === 4. CLOUD SYNC ENGINE (ANTI-CORS GET) ===
+  // === 4. CLOUD SYNC ENGINE ===
   function updateSyncBadges(statusText, isConnected) {
     ['syncBadgeDesk', 'syncBadgeMob'].forEach(id => {
       const el = document.getElementById(id);
@@ -1230,7 +1273,7 @@
     }
   }
 
-  // === 7. FIDGET INITIALIZATION (BUBBLES + DRAGGABLE MAGNETIC SLIDER + PULSE PAD) ===
+  // === 7. FIDGET INITIALIZATION ===
   const grid = document.getElementById('bubbleGrid');
   for (let i = 0; i < 16; i++) {
     const wrap = document.createElement('div');
