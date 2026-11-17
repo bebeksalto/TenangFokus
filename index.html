@@ -9,7 +9,7 @@
 <meta id="metaThemeColor" name="theme-color" content="#0b0f17">
 <link id="appleTouchIcon" rel="apple-touch-icon" sizes="180x180">
 <link id="appManifest" rel="manifest">
-<title>TenangFokus v.2.9 by rudymuda</title>
+<title>TenangFokus v.3.0 by rudymuda</title>
 <style>
   :root {
     --bg: #0b0f17; --surface: #131a26; --surface-2: #1c2536; --border: #273349;
@@ -24,7 +24,6 @@
     --shadow: 0 4px 16px rgba(0,0,0,.28);
   }
 
-  /* BRIGHT MODE PALETTE */
   body.light-mode {
     --bg: #f1f5f9; --surface: #ffffff; --surface-2: #f8fafc; --border: #e2e8f0;
     --nav-bg: rgba(255, 255, 255, .94);
@@ -240,20 +239,20 @@
 </head>
 <body>
 
-<!-- MODAL KONEKSI GOOGLE CALENDAR & EMAIL MANUAL -->
+<!-- MODAL KONEKSI GOOGLE CALENDAR & SYNC QUEUE -->
 <div class="modal-backdrop" id="syncModal">
   <div class="modal-box">
     <div class="card-title">
-      <span>KONEKSI GOOGLE & EMAIL</span>
+      <span>KONEKSI GOOGLE & OFFLINE SYNC</span>
       <button class="chip" onclick="closeSyncModal()">Tutup</button>
     </div>
     <p style="font-size:12px;color:var(--muted);margin:0 0 10px">
-      Tempel <strong>Web app URL</strong> dari Google Apps Script (<code style="color:var(--sky)">https://script.google.com/macros/s/.../exec</code>):
+      Semua data tersimpan otomatis di HP (<strong>Local-First</strong>). Tempel <strong>Web app URL</strong> Google Apps Script untuk sinkronisasi cloud & kalender:
     </p>
     <input id="gasUrlInput" placeholder="https://script.google.com/macros/s/.../exec" style="margin-bottom:10px">
     <div class="row" style="margin-bottom:10px">
       <button class="btn-indigo" style="flex:2" onclick="saveGasUrl()">Hubungkan & Sync</button>
-      <button style="flex:1" onclick="syncNow(false)">Refresh</button>
+      <button style="flex:1" onclick="flushSyncQueue(true)">Sync Sekarang</button>
     </div>
     <div style="border-top:1px solid var(--border);padding-top:10px;margin-top:6px">
       <div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:8px">KIRIM EMAIL RINGKASAN MANUAL SEKARANG</div>
@@ -274,7 +273,7 @@
         <div class="brand-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg></div>
         <div>
           TenangFokus
-          <span class="brand-sub">v.2.9 by rudymuda</span>
+          <span class="brand-sub">v.3.0 by rudymuda</span>
         </div>
       </div>
       <div class="side-menu">
@@ -311,7 +310,7 @@
       </div>
       <div class="status-pill" style="width:100%;justify-content:center;margin-bottom:8px" id="syncBadgeDesk" onclick="openSyncModal()">
         <span class="dot"></span>
-        <span id="syncTextDesk">Hubungkan Google</span>
+        <span id="syncTextDesk">Local-First Ready</span>
       </div>
       <div class="status-pill" style="width:100%;justify-content:center" id="wakeBtnDesk" onclick="toggleWakeLock()">
         <span id="wakeTextDesk">Layar: Auto</span>
@@ -326,14 +325,14 @@
         <div class="brand-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg></div>
         <div>
           TenangFokus
-          <span class="brand-sub">v.2.9 by rudymuda</span>
+          <span class="brand-sub">v.3.0 by rudymuda</span>
         </div>
       </div>
       <div class="row" style="gap:5px">
         <div class="status-pill" onclick="toggleTheme()" id="themeBtnMob">☀️</div>
         <div class="status-pill" id="syncBadgeMob" onclick="openSyncModal()">
           <span class="dot"></span>
-          <span id="syncTextMob">Connect</span>
+          <span id="syncTextMob">Local</span>
         </div>
         <div class="status-pill" id="wakeBtnMob" onclick="toggleWakeLock()">
           <span id="wakeTextMob">Layar</span>
@@ -418,7 +417,7 @@
             </div>
             <input id="evLoc" placeholder="Lokasi atau link meeting (opsional)">
             <textarea id="evDesc" placeholder="Catatan jadwal (opsional)" style="min-height:60px"></textarea>
-            <button class="btn-indigo" style="width:100%" id="evSubmitBtn" onclick="submitCalendarEvent()">Simpan ke Google Calendar</button>
+            <button class="btn-indigo" style="width:100%" id="evSubmitBtn" onclick="submitCalendarEvent()">Simpan Jadwal</button>
           </div>
         </div>
       </div>
@@ -624,7 +623,7 @@
       </div>
     </div>
 
-    <div class="mobile-footer-credit">TenangFokus v.2.9 by rudymuda</div>
+    <div class="mobile-footer-credit">TenangFokus v.3.0 by rudymuda</div>
   </main>
 
   <nav class="bottom-nav">
@@ -656,7 +655,7 @@
 </div>
 
 <script>
-  // === 0. THEME ENGINE (DARK / BRIGHT MODE) ===
+  // === 0. THEME ENGINE ===
   const THEME_KEY = 'tenangfokus_theme';
   function applyTheme(mode) {
     const isLight = mode === 'light';
@@ -723,26 +722,89 @@
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   }
+  function getLocalDateOffset(daysAgo) {
+    const d = new Date(Date.now() - daysAgo * 86400000);
+    return toKey(d);
+  }
+  function getLocalDayLabel(daysAgo) {
+    if (daysAgo === 0) return 'Hari ini';
+    const d = new Date(Date.now() - daysAgo * 86400000);
+    const days = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+    return `${days[d.getDay()]} ${String(d.getDate()).padStart(2, '0')}`;
+  }
   function toKey(d) {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   }
+  function getNowStamp() {
+    const d = new Date();
+    return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+  }
 
-  const STORAGE_KEY = 'tenangfokus_v29_rudymuda';
+  // === 3. LOCAL-FIRST STATE & OFFLINE SYNC QUEUE ===
+  const STORAGE_KEY = 'tenangfokus_v30_rudymuda';
+  const QUEUE_KEY = 'tenangfokus_sync_queue_v30';
   const GAS_URL_KEY = 'tenangfokus_gas_url';
   let gasUrl = localStorage.getItem(GAS_URL_KEY) || '';
+  let syncQueue = [];
 
   let state = {
-    todayKey: getLocalTodayKey(), tasks: [], habits: [], habit7Days: [], calendars: [], calEvents: [],
+    todayKey: getLocalTodayKey(),
+    tasks: [],
+    habits: [
+      { id: 'h1', name: 'Kunci 1 tugas utama hari ini', streak: 0, doneToday: false, lastDone: '' },
+      { id: 'h2', name: 'Minum air & peregangan rutin', streak: 0, doneToday: false, lastDone: '' },
+      { id: 'h3', name: 'Catat pengeluaran harian', streak: 0, doneToday: false, lastDone: '' },
+      { id: 'h4', name: 'Brain dump 3 menit sebelum tidur', streak: 0, doneToday: false, lastDone: '' }
+    ],
+    habit7Days: [],
+    calendars: [],
+    calEvents: [],
     finance: { income: 0, expense: 0, balance: 0, byCategory: [], items: [] },
-    grit: { mins: 0, sessions: 0, history7Days: [] }, notes: [], dumps: []
+    grit: { mins: 0, sessions: 0, history7Days: [] },
+    notes: [],
+    dumps: []
   };
+
+  function persistLocal() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+  }
+  function persistQueue() {
+    try { localStorage.setItem(QUEUE_KEY, JSON.stringify(syncQueue)); } catch (e) {}
+  }
+
+  function ensureSevenDayCharts() {
+    const today = getLocalTodayKey();
+    if (!state.grit) state.grit = { mins: 0, sessions: 0, history7Days: [] };
+    if (!Array.isArray(state.grit.history7Days) || state.grit.history7Days.length !== 7) {
+      const existing = {};
+      (state.grit.history7Days || []).forEach(x => { existing[x.label] = x.mins; });
+      const arr = [];
+      for (let i = 6; i >= 0; i--) {
+        const lbl = getLocalDayLabel(i);
+        arr.push({ label: lbl, mins: existing[lbl] || (i === 0 ? Number(state.grit.mins || 0) : 0), isToday: i === 0 });
+      }
+      state.grit.history7Days = arr;
+    }
+
+    if (!Array.isArray(state.habit7Days) || state.habit7Days.length !== 7) {
+      const existingH = {};
+      (state.habit7Days || []).forEach(x => { existingH[x.label] = x.count; });
+      const arrH = [];
+      const doneTodayCount = (state.habits || []).filter(h => h.doneToday).length;
+      for (let i = 6; i >= 0; i--) {
+        const lbl = getLocalDayLabel(i);
+        arrH.push({ label: lbl, count: i === 0 ? doneTodayCount : (existingH[lbl] || 0), isToday: i === 0 });
+      }
+      state.habit7Days = arrH;
+    }
+  }
 
   let calMode = 'month';
   let selectedDate = getLocalTodayKey();
   let loadedMonth = selectedDate.slice(0, 7);
   let targetMins = 15, timerSec = 900, timerInterval = null, breathInterval = null, wakeLock = null, tapTotal = 0;
 
-  // === 3. ZERO-LATENCY WEB AUDIO ENGINE ===
+  // === 4. ZERO-LATENCY WEB AUDIO ENGINE ===
   let audioCtx = null, clickBuffer = null, ambientSource = null, ambientFilter = null, ambientGain = null;
   let isAmbientOn = false, ambientType = 'brown', ambientVolume = 0.40, clickSoundOn = true;
 
@@ -839,28 +901,40 @@
     if (ambientGain && audioCtx) ambientGain.gain.setTargetAtTime(ambientVolume * 0.45, audioCtx.currentTime, 0.03);
   }
 
-  // === 4. CLOUD SYNC ENGINE ===
+  // === 5. CLOUD SYNC ENGINE WITH OFFLINE QUEUE ===
   function updateSyncBadges(statusText, isConnected) {
+    const qLen = syncQueue.length;
+    const deskLabel = qLen > 0 ? `${statusText} (${qLen} antre)` : statusText;
+    const mobLabel = qLen > 0 ? `Sync (${qLen})` : (isConnected ? 'Synced' : 'Local');
+
     ['syncBadgeDesk', 'syncBadgeMob'].forEach(id => {
       const el = document.getElementById(id);
       if (!el) return;
-      el.classList.toggle('active', isConnected);
-      el.classList.toggle('warn', !isConnected);
+      el.classList.toggle('active', isConnected && qLen === 0);
+      el.classList.toggle('warn', !isConnected || qLen > 0);
     });
-    document.getElementById('syncTextDesk').textContent = statusText;
-    document.getElementById('syncTextMob').textContent = isConnected ? 'Synced' : 'Connect';
+    document.getElementById('syncTextDesk').textContent = deskLabel;
+    document.getElementById('syncTextMob').textContent = mobLabel;
   }
+
   function openSyncModal() {
     document.getElementById('gasUrlInput').value = gasUrl;
-    document.getElementById('syncModalMsg').textContent = gasUrl ? 'Terhubung ke Google Apps Script.' : '';
+    document.getElementById('syncModalMsg').textContent = gasUrl
+      ? `Terhubung ke Google. Antrean offline: ${syncQueue.length} item.`
+      : `Mode Lokal (Offline). Antrean tersimpan di HP: ${syncQueue.length} item.`;
     document.getElementById('syncModal').classList.add('open');
   }
   function closeSyncModal() { document.getElementById('syncModal').classList.remove('open'); }
+
   function saveGasUrl() {
     const val = document.getElementById('gasUrlInput').value.trim();
     gasUrl = val; localStorage.setItem(GAS_URL_KEY, val);
-    if (val) { document.getElementById('syncModalMsg').textContent = 'Memuat kalender & tugas...'; syncNow(true); }
-    else updateSyncBadges('Mode Lokal', false);
+    if (val) {
+      document.getElementById('syncModalMsg').textContent = 'Menyinkronkan antrean & kalender...';
+      flushSyncQueue(true);
+    } else {
+      updateSyncBadges('Local-First Ready', false);
+    }
   }
 
   async function triggerManualEmail(actionType) {
@@ -873,12 +947,13 @@
       const data = await res.json();
       document.getElementById('syncModalMsg').textContent = data.msg || 'Email terkirim!';
     } catch (e) {
-      document.getElementById('syncModalMsg').textContent = 'Gagal mengirim email: ' + e.message;
+      document.getElementById('syncModalMsg').textContent = 'Offline / gagal mengirim email.';
     }
   }
 
   async function apiGet(anchor) {
-    if (!gasUrl) { updateSyncBadges('Hubungkan Google', false); return; }
+    if (!gasUrl) { updateSyncBadges('Local-First Ready', false); return; }
+    if (!navigator.onLine) { updateSyncBadges('Offline (Tersimpan)', false); return; }
     updateSyncBadges('Syncing...', true);
     try {
       const sep = gasUrl.includes('?') ? '&' : '?';
@@ -888,42 +963,82 @@
       const data = await res.json();
       if (data && !data.error) {
         state = data;
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        ensureSevenDayCharts();
+        persistLocal();
         populateCalendarDropdowns();
         renderAll();
         updateSyncBadges('Google Synced', true);
         document.getElementById('syncModalMsg').textContent = `Tersinkron (${(state.calendars || []).length} kalender aktif)!`;
       }
     } catch (e) {
-      updateSyncBadges('Gagal Sync', false);
+      updateSyncBadges('Offline (Tersimpan)', false);
     }
   }
 
-  async function apiPost(payloadObj) {
-    if (!gasUrl) { openSyncModal(); return; }
-    updateSyncBadges('Menyimpan...', true);
+  function enqueueAndSync(payloadObj) {
+    syncQueue.push(payloadObj);
+    persistQueue();
+    flushSyncQueue(false);
+  }
+
+  let isFlushing = false;
+  async function flushSyncQueue(closeAfter) {
+    if (!gasUrl) {
+      updateSyncBadges('Local-First Ready', false);
+      return;
+    }
+    if (!navigator.onLine) {
+      updateSyncBadges('Offline (Tersimpan)', false);
+      return;
+    }
+    if (isFlushing) return;
+    if (syncQueue.length === 0) {
+      await apiGet(selectedDate);
+      if (closeAfter) setTimeout(closeSyncModal, 600);
+      return;
+    }
+
+    isFlushing = true;
+    updateSyncBadges('Menyinkronkan...', true);
+
     try {
-      const sep = gasUrl.includes('?') ? '&' : '?';
-      const encoded = encodeURIComponent(JSON.stringify(payloadObj));
-      const res = await fetch(`${gasUrl}${sep}action=post&data=${encoded}`, {
-        method: 'GET', redirect: 'follow'
-      });
-      const data = await res.json();
-      if (data && !data.error) {
-        state = data;
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-        populateCalendarDropdowns();
-        renderAll();
+      while (syncQueue.length > 0) {
+        const nextItem = syncQueue[0];
+        const sep = gasUrl.includes('?') ? '&' : '?';
+        const encoded = encodeURIComponent(JSON.stringify(nextItem));
+        const res = await fetch(`${gasUrl}${sep}action=post&data=${encoded}`, {
+          method: 'GET', redirect: 'follow'
+        });
+        const data = await res.json();
+        if (data && !data.error) {
+          syncQueue.shift();
+          persistQueue();
+          if (syncQueue.length === 0) {
+            state = data;
+            ensureSevenDayCharts();
+            persistLocal();
+            populateCalendarDropdowns();
+            renderAll();
+          }
+        } else {
+          break;
+        }
+      }
+      if (syncQueue.length === 0) {
         updateSyncBadges('Google Synced', true);
+        document.getElementById('syncModalMsg').textContent = 'Semua data tersinkron ke Google!';
+        if (closeAfter) setTimeout(closeSyncModal, 600);
       } else {
-        updateSyncBadges('Error Server', false);
-        alert('Error: ' + (data.error || 'Gagal menyimpan'));
+        updateSyncBadges('Menunggu Sinyal', false);
       }
     } catch (e) {
-      updateSyncBadges('Error Sync', false);
+      updateSyncBadges('Offline (Tersimpan)', false);
+    } finally {
+      isFlushing = false;
     }
   }
-  function syncNow(fromModal) { apiGet(selectedDate).then(() => { if (fromModal) setTimeout(closeSyncModal, 700); }); }
+
+  window.addEventListener('online', () => flushSyncQueue(false));
 
   function populateCalendarDropdowns() {
     const cals = state.calendars || [];
@@ -941,7 +1056,7 @@
 
   function rupiah(n) { return 'Rp ' + Number(n || 0).toLocaleString('id-ID'); }
 
-  // === 5. CALENDAR RENDERING ===
+  // === 6. CALENDAR RENDERING & LOCAL-FIRST MUTATIONS ===
   function renderCalendar() {
     const todayLocal = getLocalTodayKey();
     const base = new Date(selectedDate + 'T12:00:00');
@@ -967,7 +1082,7 @@
       for (let i = 0; i < 42; i++) {
         const cur = new Date(startGrid); cur.setDate(startGrid.getDate() + i);
         const k = toKey(cur);
-        const dots = (evMap[k] || []).slice(0, 4).map(e => `<span class="cal-dot" style="background:${e.color}"></span>`).join('');
+        const dots = (evMap[k] || []).slice(0, 4).map(e => `<span class="cal-dot" style="background:${e.color || '#818cf8'}"></span>`).join('');
         html += `<div class="cal-cell ${cur.getMonth() !== base.getMonth() ? 'other-month' : ''} ${k === todayLocal ? 'today' : ''} ${k === selectedDate ? 'selected' : ''}" onclick="selectCalDate('${k}')">
           <div class="cal-day-num">${cur.getDate()}</div>
           <div class="cal-dots">${dots}</div>
@@ -998,18 +1113,18 @@
     document.getElementById('selectedDateLabel').textContent = isTodaySelected ? `AGENDA HARI INI (${selectedDate})` : `AGENDA ${selectedDate}`;
     document.getElementById('eventCountBadge').textContent = `${dayEvs.length} acara`;
     document.getElementById('dayAgendaList').innerHTML = dayEvs.map((ev, idx) => `
-      <div class="event-card" style="border-left-color:${ev.color}">
+      <div class="event-card" style="border-left-color:${ev.color || '#818cf8'}">
         <div style="flex:1;min-width:0">
-          <div style="font-size:11px;color:${ev.color};font-weight:700">${ev.isAllDay ? 'Seharian' : ev.startStr + ' - ' + ev.endStr} · ${ev.calName}</div>
+          <div style="font-size:11px;color:${ev.color || '#818cf8'};font-weight:700">${ev.isAllDay ? 'Seharian' : ev.startStr + ' - ' + ev.endStr} · ${ev.calName || 'Lokal'}</div>
           <div style="font-weight:700;font-size:14px">${ev.title}</div>
           ${ev.location ? `<div style="font-size:11px;color:var(--muted)">Lokasi: ${ev.location}</div>` : ''}
         </div>
-        ${ev.canEdit ? `
+        ${ev.canEdit !== false ? `
           <div class="row" style="gap:4px">
             <button class="icon-action" onclick="editCalendarEvent('${selectedDate}', ${idx})">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
             </button>
-            <button class="icon-action" onclick="doDeleteCal('${ev.calId}','${ev.id}')">✕</button>
+            <button class="icon-action" onclick="doDeleteCal('${ev.calId || ''}','${ev.id}')">✕</button>
           </div>` : ''}
       </div>
     `).join('') || '<div style="color:var(--muted);font-size:13px">Tidak ada agenda pada tanggal ini.</div>';
@@ -1044,20 +1159,45 @@
     const title = document.getElementById('evTitle').value.trim(), date = document.getElementById('evDate').value;
     if (!title || !date) return;
     feedback(1.15, 18);
+    const evId = document.getElementById('evId').value;
+    const calId = document.getElementById('evCalSelect').value;
+    const calObj = (state.calendars || []).find(c => c.id === calId);
+    const isAllDay = document.getElementById('evAllDay').checked;
+    const startTime = document.getElementById('evStart').value;
+    const endTime = document.getElementById('evEnd').value;
+    const location = document.getElementById('evLoc').value.trim();
+    const description = document.getElementById('evDesc').value.trim();
+
     const payload = {
-      eventId: document.getElementById('evId').value,
+      eventId: evId,
       origCalId: document.getElementById('evOrigCalId').value,
-      title, date,
-      calId: document.getElementById('evCalSelect').value,
+      title, date, calId,
       repeat: document.getElementById('evRepeat').value,
-      isAllDay: document.getElementById('evAllDay').checked,
-      startTime: document.getElementById('evStart').value,
-      endTime: document.getElementById('evEnd').value,
-      location: document.getElementById('evLoc').value.trim(),
-      description: document.getElementById('evDesc').value.trim()
+      isAllDay, startTime, endTime, location, description
     };
+
+    // Local-First Update
+    if (!Array.isArray(state.calEvents)) state.calEvents = [];
+    if (evId) {
+      const idx = state.calEvents.findIndex(x => x.id === evId);
+      if (idx >= 0) {
+        Object.assign(state.calEvents[idx], {
+          title, dateKey: date, calId, calName: calObj ? calObj.name : state.calEvents[idx].calName,
+          color: calObj ? calObj.color : state.calEvents[idx].color,
+          isAllDay, startStr: startTime, endStr: endTime, location, description
+        });
+      }
+    } else {
+      state.calEvents.push({
+        id: 'local_ev_' + Date.now(), calId, calName: calObj ? calObj.name : 'Kalender Utama',
+        color: calObj ? calObj.color : '#818cf8', canEdit: true,
+        title, dateKey: date, startStr: startTime, endStr: endTime, isAllDay, location, description
+      });
+    }
+    persistLocal();
     resetCalForm();
-    apiPost({ fn: 'saveCalendarEvent', payload, anchor: selectedDate });
+    renderCalendar();
+    enqueueAndSync({ fn: 'saveCalendarEvent', payload, anchor: selectedDate });
   }
 
   function editCalendarEvent(dateKey, index) {
@@ -1066,9 +1206,9 @@
     if (!ev) return;
     feedback(1.1, 14);
     document.getElementById('evId').value = ev.id;
-    document.getElementById('evOrigCalId').value = ev.calId;
+    document.getElementById('evOrigCalId').value = ev.calId || '';
     document.getElementById('evTitle').value = ev.title;
-    document.getElementById('evCalSelect').value = ev.calId;
+    if (ev.calId) document.getElementById('evCalSelect').value = ev.calId;
     document.getElementById('evDate').value = ev.dateKey;
     document.getElementById('evAllDay').checked = ev.isAllDay;
     document.getElementById('evStart').value = ev.startStr || '09:00';
@@ -1087,14 +1227,25 @@
     document.getElementById('evTitle').value = ''; document.getElementById('evLoc').value = ''; document.getElementById('evDesc').value = '';
     document.getElementById('evAllDay').checked = false; toggleAllDayInput();
     document.getElementById('calFormHeader').textContent = 'TAMBAH JADWAL GOOGLE CALENDAR';
-    document.getElementById('evSubmitBtn').textContent = 'Simpan ke Google Calendar';
+    document.getElementById('evSubmitBtn').textContent = 'Simpan Jadwal';
     document.getElementById('cancelEditBtn').style.display = 'none';
   }
-  function doDeleteCal(calId, eventId) { feedback(0.7, 22); apiPost({ fn: 'deleteCalendarEvent', calId, eventId, anchor: selectedDate }); }
 
-  // === 6. RENDER ALL OTHER TABS ===
-  function renderAll() {
+  function doDeleteCal(calId, eventId) {
+    feedback(0.7, 22);
+    state.calEvents = (state.calEvents || []).filter(x => x.id !== eventId);
+    persistLocal();
     renderCalendar();
+    if (!String(eventId).startsWith('local_')) {
+      enqueueAndSync({ fn: 'deleteCalendarEvent', calId, eventId, anchor: selectedDate });
+    }
+  }
+
+  // === 7. RENDER ALL OTHER TABS ===
+  function renderAll() {
+    ensureSevenDayCharts();
+    renderCalendar();
+
     document.getElementById('gritStat').textContent = `Hari ini: ${(state.grit && state.grit.mins) || 0} mnt (${(state.grit && state.grit.sessions) || 0} sesi)`;
     const hist = (state.grit && state.grit.history7Days) || [];
     document.getElementById('weekTotalStat').textContent = `Total: ${hist.reduce((a, d) => a + d.mins, 0)} mnt`;
@@ -1109,12 +1260,12 @@
       const rem = t.reminder ? `<span class="badge-due">${t.reminder.replace('T', ' ')}</span>` : '';
       const mailBadge = t.notified ? `<span class="badge-mail">Email Terkirim</span>` : (t.reminder ? `<span class="badge-mail">Auto-Email</span>` : '');
       return `<div class="item-row ${t.done ? 'done' : ''}">
-        <div class="check-circle" onclick="feedback(1.2,16);apiPost({fn:'toggleTask',id:'${t.id}'})">${t.done ? '✓' : ''}</div>
-        <div class="item-body" onclick="feedback(1.2,16);apiPost({fn:'toggleTask',id:'${t.id}'})"><div class="item-text">${t.text}</div>${(rem || mailBadge) ? `<div class="item-meta">${rem}${mailBadge}</div>` : ''}</div>
+        <div class="check-circle" onclick="handleToggleTask('${t.id}')">${t.done ? '✓' : ''}</div>
+        <div class="item-body" onclick="handleToggleTask('${t.id}')"><div class="item-text">${t.text}</div>${(rem || mailBadge) ? `<div class="item-meta">${rem}${mailBadge}</div>` : ''}</div>
         <button class="icon-action" title="Kirim Reminder Email Sekarang" onclick="sendTaskMailNow('${t.id}')">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--sky)" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
         </button>
-        <button class="icon-action" onclick="feedback(0.7,20);apiPost({fn:'deleteRowById',sheetName:'Tasks',id:'${t.id}'})">✕</button>
+        <button class="icon-action" onclick="handleDeleteItem('tasks','Tasks','${t.id}')">✕</button>
       </div>`;
     }).join('') || '<div style="color:var(--muted);font-size:13px">Belum ada tugas aktif.</div>';
 
@@ -1123,10 +1274,10 @@
     document.getElementById('habitProgress').textContent = `${doneH}/${habits.length} selesai`;
     document.getElementById('habitList').innerHTML = habits.map(h => `
       <div class="item-row ${h.doneToday ? 'done' : ''}">
-        <div class="check-circle" onclick="feedback(1.25,20);apiPost({fn:'toggleHabit',id:'${h.id}'})">${h.doneToday ? '✓' : ''}</div>
-        <div class="item-body" onclick="feedback(1.25,20);apiPost({fn:'toggleHabit',id:'${h.id}'})"><div class="item-text">${h.name}</div></div>
+        <div class="check-circle" onclick="handleToggleHabit('${h.id}')">${h.doneToday ? '✓' : ''}</div>
+        <div class="item-body" onclick="handleToggleHabit('${h.id}')"><div class="item-text">${h.name}</div></div>
         <span class="badge-streak">${h.streak} hari</span>
-        <button class="icon-action" onclick="feedback(0.7,20);apiPost({fn:'deleteRowById',sheetName:'Habits',id:'${h.id}'})">✕</button>
+        <button class="icon-action" onclick="handleDeleteItem('habits','Habits','${h.id}')">✕</button>
       </div>`).join('');
 
     const h7 = state.habit7Days || [], maxH = Math.max(habits.length || 4, ...h7.map(x => x.count));
@@ -1148,52 +1299,208 @@
     }).join('') || '<div style="color:var(--muted);font-size:13px">Belum ada pengeluaran bulan ini.</div>';
 
     document.getElementById('finList').innerHTML = (fin.items || []).map(f => `
-      <div class="item-row"><div class="item-body"><div class="item-text">${f.category} ${f.note ? '· ' + f.note : ''}</div><div class="item-meta">${f.date}</div></div><div style="font-weight:700;color:${f.type === 'Masuk' ? 'var(--emerald)' : 'var(--rose)'}">${f.type === 'Masuk' ? '+' : '-'}${rupiah(f.amount)}</div><button class="icon-action" onclick="feedback(0.7,20);apiPost({fn:'deleteRowById',sheetName:'Finance',id:'${f.id}'})">✕</button></div>`).join('') || '<div style="color:var(--muted);font-size:13px">Belum ada transaksi tercatat.</div>';
+      <div class="item-row"><div class="item-body"><div class="item-text">${f.category} ${f.note ? '· ' + f.note : ''}</div><div class="item-meta">${f.date}</div></div><div style="font-weight:700;color:${f.type === 'Masuk' ? 'var(--emerald)' : 'var(--rose)'}">${f.type === 'Masuk' ? '+' : '-'}${rupiah(f.amount)}</div><button class="icon-action" onclick="handleDeleteFin('${f.id}')">✕</button></div>`).join('') || '<div style="color:var(--muted);font-size:13px">Belum ada transaksi tercatat.</div>';
 
     document.getElementById('notesGrid').innerHTML = (state.notes || []).map(n => `
-      <div class="note-card" onclick="editNote('${n.id}')"><div style="display:flex;justify-content:space-between;align-items:center"><div class="note-title">${n.title}</div><span style="font-size:11px;color:var(--muted)" onclick="event.stopPropagation();feedback(0.7,20);apiPost({fn:'deleteRowById',sheetName:'Notes',id:'${n.id}'})">✕</span></div><div class="note-snippet">${n.body}</div><div style="font-size:10px;color:var(--violet);margin-top:6px">${n.updated}</div></div>`).join('');
+      <div class="note-card" onclick="editNote('${n.id}')"><div style="display:flex;justify-content:space-between;align-items:center"><div class="note-title">${n.title}</div><span style="font-size:11px;color:var(--muted)" onclick="event.stopPropagation();handleDeleteItem('notes','Notes','${n.id}')">✕</span></div><div class="note-snippet">${n.body}</div><div style="font-size:10px;color:var(--violet);margin-top:6px">${n.updated}</div></div>`).join('');
 
     document.getElementById('dumpList').innerHTML = (state.dumps || []).map(d => `
-      <div class="item-row"><div class="item-body"><div class="item-meta"><span style="color:var(--amber);font-weight:600">${d.tag}</span></div><div class="item-text">${d.text}</div></div><button class="icon-action" onclick="feedback(0.7,20);apiPost({fn:'deleteRowById',sheetName:'BrainDump',id:'${d.id}'})">✕</button></div>`).join('') || '<div style="color:var(--muted);font-size:13px">Kepala bersih, belum ada parkir ide.</div>';
+      <div class="item-row"><div class="item-body"><div class="item-meta"><span style="color:var(--amber);font-weight:600">${d.tag}</span></div><div class="item-text">${d.text}</div></div><button class="icon-action" onclick="handleDeleteItem('dumps','BrainDump','${d.id}')">✕</button></div>`).join('') || '<div style="color:var(--muted);font-size:13px">Kepala bersih, belum ada parkir ide.</div>';
   }
 
+  // === 8. LOCAL-FIRST MUTATIONS FOR ALL MODULES ===
   function submitTask() {
     const inp = document.getElementById('taskInput'), rem = document.getElementById('taskTime');
-    if (!inp.value.trim()) return;
-    feedback(1.1, 16); apiPost({ fn: 'addTask', text: inp.value.trim(), reminder: rem.value, syncCal: true });
+    const text = inp.value.trim();
+    if (!text) return;
+    const reminder = rem.value;
+    feedback(1.1, 16);
+
+    if (!Array.isArray(state.tasks)) state.tasks = [];
+    state.tasks.push({ id: 'local_t_' + Date.now(), text, reminder, done: false, notified: false });
+    if (reminder) {
+      if (!Array.isArray(state.calEvents)) state.calEvents = [];
+      state.calEvents.push({
+        id: 'local_ev_t_' + Date.now(), calId: '', calName: 'Deadline Task', color: '#fbbf24', canEdit: true,
+        title: '[Deadline] ' + text, dateKey: reminder.slice(0, 10),
+        startStr: reminder.slice(11, 16) || '09:00', endStr: '23:59', isAllDay: false, location: '', description: ''
+      });
+    }
+    persistLocal();
+    renderAll();
     inp.value = ''; rem.value = '';
+    enqueueAndSync({ fn: 'addTask', text, reminder, syncCal: true });
   }
+
+  function handleToggleTask(id) {
+    feedback(1.2, 16);
+    const t = (state.tasks || []).find(x => x.id === id);
+    if (t) t.done = !t.done;
+    persistLocal();
+    renderAll();
+    if (!String(id).startsWith('local_')) {
+      enqueueAndSync({ fn: 'toggleTask', id });
+    }
+  }
+
   function sendTaskMailNow(id) {
+    if (!gasUrl) { openSyncModal(); return; }
     feedback(1.15, 18);
-    apiPost({ fn: 'sendManualTaskReminder', id }).then(() => alert('Email pengingat tugas terkirim ke Gmail-mu!'));
+    const t = (state.tasks || []).find(x => x.id === id);
+    if (t) t.notified = true;
+    persistLocal();
+    renderAll();
+    enqueueAndSync({ fn: 'sendManualTaskReminder', id });
+    alert('Permintaan kirim email pengingat tugas diproses!');
   }
+
   function submitHabit() {
     const inp = document.getElementById('habitInput');
-    if (!inp.value.trim()) return;
-    feedback(1.1, 16); apiPost({ fn: 'addHabit', name: inp.value.trim() }); inp.value = '';
+    const name = inp.value.trim();
+    if (!name) return;
+    feedback(1.1, 16);
+    if (!Array.isArray(state.habits)) state.habits = [];
+    state.habits.push({ id: 'local_h_' + Date.now(), name, streak: 0, doneToday: false, lastDone: '' });
+    persistLocal();
+    renderAll();
+    inp.value = '';
+    enqueueAndSync({ fn: 'addHabit', name });
   }
+
+  function handleToggleHabit(id) {
+    feedback(1.25, 20);
+    const h = (state.habits || []).find(x => x.id === id);
+    if (h) {
+      h.doneToday = !h.doneToday;
+      h.streak = h.doneToday ? Number(h.streak || 0) + 1 : Math.max(0, Number(h.streak || 0) - 1);
+      h.lastDone = h.doneToday ? getLocalTodayKey() : '';
+    }
+    const doneTodayCount = (state.habits || []).filter(x => x.doneToday).length;
+    if (Array.isArray(state.habit7Days) && state.habit7Days.length === 7) {
+      state.habit7Days[6].count = doneTodayCount;
+    }
+    persistLocal();
+    renderAll();
+    if (!String(id).startsWith('local_')) {
+      enqueueAndSync({ fn: 'toggleHabit', id });
+    }
+  }
+
   function submitFin() {
     const amt = Number(document.getElementById('finAmt').value);
     if (!amt || amt <= 0) return;
-    feedback(1.05, 16); apiPost({ fn: 'addTransaction', type: document.getElementById('finType').value, category: document.getElementById('finCat').value, amount: amt, note: document.getElementById('finNote').value.trim() });
-    document.getElementById('finAmt').value = ''; document.getElementById('finNote').value = '';
+    const type = document.getElementById('finType').value;
+    const category = document.getElementById('finCat').value;
+    const note = document.getElementById('finNote').value.trim();
+    const today = getLocalTodayKey();
+    feedback(1.05, 16);
+
+    if (!state.finance) state.finance = { income: 0, expense: 0, balance: 0, byCategory: [], items: [] };
+    if (!Array.isArray(state.finance.items)) state.finance.items = [];
+    if (!Array.isArray(state.finance.byCategory)) state.finance.byCategory = [];
+
+    state.finance.items.unshift({
+      id: 'local_f_' + Date.now(), date: today, type, category, amount: amt, note
+    });
+    if (type === 'Masuk') {
+      state.finance.income = Number(state.finance.income || 0) + amt;
+    } else {
+      state.finance.expense = Number(state.finance.expense || 0) + amt;
+      const cObj = state.finance.byCategory.find(c => c.category === category);
+      if (cObj) cObj.amount += amt;
+      else state.finance.byCategory.push({ category, amount: amt });
+      state.finance.byCategory.sort((a, b) => b.amount - a.amount);
+    }
+    state.finance.balance = Number(state.finance.income || 0) - Number(state.finance.expense || 0);
+
+    persistLocal();
+    renderAll();
+    document.getElementById('finAmt').value = '';
+    document.getElementById('finNote').value = '';
+    enqueueAndSync({ fn: 'addTransaction', type, category, amount: amt, note });
   }
+
+  function handleDeleteFin(id) {
+    feedback(0.7, 20);
+    if (state.finance && Array.isArray(state.finance.items)) {
+      const target = state.finance.items.find(x => x.id === id);
+      if (target) {
+        if (target.type === 'Masuk') state.finance.income = Math.max(0, Number(state.finance.income || 0) - target.amount);
+        else {
+          state.finance.expense = Math.max(0, Number(state.finance.expense || 0) - target.amount);
+          const cObj = (state.finance.byCategory || []).find(c => c.category === target.category);
+          if (cObj) {
+            cObj.amount = Math.max(0, cObj.amount - target.amount);
+            state.finance.byCategory = state.finance.byCategory.filter(c => c.amount > 0);
+          }
+        }
+        state.finance.balance = Number(state.finance.income || 0) - Number(state.finance.expense || 0);
+      }
+      state.finance.items = state.finance.items.filter(x => x.id !== id);
+    }
+    persistLocal();
+    renderAll();
+    if (!String(id).startsWith('local_')) {
+      enqueueAndSync({ fn: 'deleteRowById', sheetName: 'Finance', id });
+    }
+  }
+
   function submitNote() {
-    const id = document.getElementById('noteId').value, title = document.getElementById('noteTitle').value.trim(), body = document.getElementById('noteBody').value.trim();
+    const id = document.getElementById('noteId').value;
+    const title = document.getElementById('noteTitle').value.trim();
+    const body = document.getElementById('noteBody').value.trim();
     if (!title && !body) return;
-    feedback(1.1, 16); apiPost({ fn: 'saveNote', id, title, body }); clearNoteForm();
+    feedback(1.1, 16);
+
+    if (!Array.isArray(state.notes)) state.notes = [];
+    const stamp = getNowStamp();
+    if (id) {
+      const existing = state.notes.find(x => x.id === id);
+      if (existing) { existing.title = title || 'Tanpa Judul'; existing.body = body; existing.updated = stamp; }
+    } else {
+      state.notes.unshift({ id: 'local_n_' + Date.now(), title: title || 'Tanpa Judul', body, updated: stamp });
+    }
+    persistLocal();
+    clearNoteForm();
+    renderAll();
+    enqueueAndSync({ fn: 'saveNote', id: String(id).startsWith('local_') ? '' : id, title, body });
   }
+
   function editNote(id) {
     const n = (state.notes || []).find(x => x.id === id);
     if (!n) return;
     feedback(1.0, 12);
-    document.getElementById('noteId').value = n.id; document.getElementById('noteTitle').value = n.title; document.getElementById('noteBody').value = n.body;
+    document.getElementById('noteId').value = n.id;
+    document.getElementById('noteTitle').value = n.title;
+    document.getElementById('noteBody').value = n.body;
   }
   function clearNoteForm() { document.getElementById('noteId').value = ''; document.getElementById('noteTitle').value = ''; document.getElementById('noteBody').value = ''; }
+
   function submitDump() {
     const inp = document.getElementById('dumpInput');
-    if (!inp.value.trim()) return;
-    feedback(1.1, 16); apiPost({ fn: 'addDump', tag: document.getElementById('dumpTag').value, text: inp.value.trim() }); inp.value = '';
+    const text = inp.value.trim();
+    if (!text) return;
+    const tag = document.getElementById('dumpTag').value;
+    feedback(1.1, 16);
+
+    if (!Array.isArray(state.dumps)) state.dumps = [];
+    state.dumps.unshift({ id: 'local_d_' + Date.now(), tag, text });
+    persistLocal();
+    renderAll();
+    inp.value = '';
+    enqueueAndSync({ fn: 'addDump', tag, text });
+  }
+
+  function handleDeleteItem(stateKey, sheetName, id) {
+    feedback(0.7, 20);
+    if (Array.isArray(state[stateKey])) {
+      state[stateKey] = state[stateKey].filter(x => x.id !== id);
+    }
+    persistLocal();
+    renderAll();
+    if (!String(id).startsWith('local_')) {
+      enqueueAndSync({ fn: 'deleteRowById', sheetName, id });
+    }
   }
 
   function switchTab(name) {
@@ -1225,7 +1532,15 @@
         if (timerSec > 0) { timerSec--; updateTimerUI(); }
         else {
           clearInterval(timerInterval); timerInterval = null; feedback(1.35, 80);
-          btn.textContent = 'Selesai (+Grit)'; apiPost({ fn: 'logSprint', mins: targetMins });
+          btn.textContent = 'Selesai (+Grit)';
+          if (!state.grit) state.grit = { mins: 0, sessions: 0, history7Days: [] };
+          state.grit.mins = Number(state.grit.mins || 0) + targetMins;
+          state.grit.sessions = Number(state.grit.sessions || 0) + 1;
+          ensureSevenDayCharts();
+          state.grit.history7Days[6].mins += targetMins;
+          persistLocal();
+          renderAll();
+          enqueueAndSync({ fn: 'logSprint', mins: targetMins });
         }
       }, 1000);
     }
@@ -1273,7 +1588,7 @@
     }
   }
 
-  // === 7. FIDGET INITIALIZATION ===
+  // === 9. FIDGET INITIALIZATION ===
   const grid = document.getElementById('bubbleGrid');
   for (let i = 0; i < 16; i++) {
     const wrap = document.createElement('div');
@@ -1351,16 +1666,20 @@
     document.getElementById('tapCount').textContent = `${tapTotal} ketukan`;
   };
 
-  // === 8. BOOTSTRAP ===
+  // === 10. BOOTSTRAP ===
   try {
     const cached = JSON.parse(localStorage.getItem(STORAGE_KEY));
     if (cached) state = Object.assign(state, cached);
+    const savedQueue = JSON.parse(localStorage.getItem(QUEUE_KEY));
+    if (Array.isArray(savedQueue)) syncQueue = savedQueue;
   } catch (e) {}
+
   selectedDate = getLocalTodayKey();
   loadedMonth = selectedDate.slice(0, 7);
+  ensureSevenDayCharts();
   populateCalendarDropdowns();
   renderAll();
-  apiGet(selectedDate);
+  flushSyncQueue(false);
 </script>
 </body>
 </html>
