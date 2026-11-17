@@ -9,7 +9,7 @@
 <meta id="metaThemeColor" name="theme-color" content="#0b0f17">
 <link id="appleTouchIcon" rel="apple-touch-icon" sizes="180x180">
 <link id="appManifest" rel="manifest">
-<title>TenangFokus v.3.0 by rudymuda</title>
+<title>TenangFokus v.3.1 by rudymuda</title>
 <style>
   :root {
     --bg: #0b0f17; --surface: #131a26; --surface-2: #1c2536; --border: #273349;
@@ -192,7 +192,7 @@
     opacity: 0.015; cursor: pointer; z-index: 2; transform: scale(3.5);
   }
 
-  /* DRAGGABLE MAGNETIC DETENT SLIDER */
+  /* DRAGGABLE MAGNETIC DETENT SLIDER WITH 7 SLIDE TAPTIC ZONES */
   .mag-slider {
     position: relative; width: 100%; height: 54px; border-radius: 16px;
     background: var(--surface-2); border: 1px solid var(--border);
@@ -226,6 +226,18 @@
   .mag-slider.dragging .mag-fill,
   .mag-slider.dragging .mag-thumb { transition: none; }
   .mag-slider.dragging .mag-thumb { transform: translateX(-50%) scale(1.06); }
+
+  .mag-switch-layer {
+    position: absolute; inset: 0; display: grid;
+    grid-template-columns: repeat(7, 1fr); z-index: 3;
+  }
+  .mag-switch-cell {
+    position: relative; width: 100%; height: 100%; overflow: hidden;
+  }
+  .mag-switch-cell input[switch] {
+    position: absolute; inset: 0; width: 100%; height: 100%; margin: 0;
+    opacity: 0.015; cursor: pointer; transform: scale(3.5);
+  }
 
   .pulse-wrap {
     position: relative; width: 100%; height: 104px; border-radius: 18px;
@@ -273,7 +285,7 @@
         <div class="brand-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg></div>
         <div>
           TenangFokus
-          <span class="brand-sub">v.3.0 by rudymuda</span>
+          <span class="brand-sub">v.3.1 by rudymuda</span>
         </div>
       </div>
       <div class="side-menu">
@@ -325,7 +337,7 @@
         <div class="brand-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg></div>
         <div>
           TenangFokus
-          <span class="brand-sub">v.3.0 by rudymuda</span>
+          <span class="brand-sub">v.3.1 by rudymuda</span>
         </div>
       </div>
       <div class="row" style="gap:5px">
@@ -577,7 +589,7 @@
       </div>
     </div>
 
-    <!-- TAB 6: FIDGET -->
+    <!-- TAB 6: FIDGET (DRAGGABLE TAPTIC SLIDER + IN-PLACE BUBBLES + PULSE PAD) -->
     <div id="tab-fidget" class="view">
       <div class="desktop-grid-3">
         <div class="card accent-sky">
@@ -607,7 +619,7 @@
               <div class="mag-fill" id="magFill"></div>
               <div class="mag-ticks" id="magTicks"></div>
               <div class="mag-thumb" id="magThumb"></div>
-              <input type="checkbox" switch class="native-hit-switch" id="magSwitchInput">
+              <div class="mag-switch-layer" id="magSwitchLayer"></div>
             </div>
           </div>
 
@@ -623,7 +635,7 @@
       </div>
     </div>
 
-    <div class="mobile-footer-credit">TenangFokus v.3.0 by rudymuda</div>
+    <div class="mobile-footer-credit">TenangFokus v.3.1 by rudymuda</div>
   </main>
 
   <nav class="bottom-nav">
@@ -722,10 +734,6 @@
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   }
-  function getLocalDateOffset(daysAgo) {
-    const d = new Date(Date.now() - daysAgo * 86400000);
-    return toKey(d);
-  }
   function getLocalDayLabel(daysAgo) {
     if (daysAgo === 0) return 'Hari ini';
     const d = new Date(Date.now() - daysAgo * 86400000);
@@ -741,8 +749,8 @@
   }
 
   // === 3. LOCAL-FIRST STATE & OFFLINE SYNC QUEUE ===
-  const STORAGE_KEY = 'tenangfokus_v30_rudymuda';
-  const QUEUE_KEY = 'tenangfokus_sync_queue_v30';
+  const STORAGE_KEY = 'tenangfokus_v31_rudymuda';
+  const QUEUE_KEY = 'tenangfokus_sync_queue_v31';
   const GAS_URL_KEY = 'tenangfokus_gas_url';
   let gasUrl = localStorage.getItem(GAS_URL_KEY) || '';
   let syncQueue = [];
@@ -773,7 +781,6 @@
   }
 
   function ensureSevenDayCharts() {
-    const today = getLocalTodayKey();
     if (!state.grit) state.grit = { mins: 0, sessions: 0, history7Days: [] };
     if (!Array.isArray(state.grit.history7Days) || state.grit.history7Days.length !== 7) {
       const existing = {};
@@ -983,14 +990,8 @@
 
   let isFlushing = false;
   async function flushSyncQueue(closeAfter) {
-    if (!gasUrl) {
-      updateSyncBadges('Local-First Ready', false);
-      return;
-    }
-    if (!navigator.onLine) {
-      updateSyncBadges('Offline (Tersimpan)', false);
-      return;
-    }
+    if (!gasUrl) { updateSyncBadges('Local-First Ready', false); return; }
+    if (!navigator.onLine) { updateSyncBadges('Offline (Tersimpan)', false); return; }
     if (isFlushing) return;
     if (syncQueue.length === 0) {
       await apiGet(selectedDate);
@@ -1176,7 +1177,6 @@
       isAllDay, startTime, endTime, location, description
     };
 
-    // Local-First Update
     if (!Array.isArray(state.calEvents)) state.calEvents = [];
     if (evId) {
       const idx = state.calEvents.findIndex(x => x.id === evId);
@@ -1588,7 +1588,7 @@
     }
   }
 
-  // === 9. FIDGET INITIALIZATION ===
+  // === 9. FIDGET INITIALIZATION (BUBBLES + DRAGGABLE TAPTIC SLIDER + PULSE PAD) ===
   const grid = document.getElementById('bubbleGrid');
   for (let i = 0; i < 16; i++) {
     const wrap = document.createElement('div');
@@ -1610,12 +1610,26 @@
   const magFill = document.getElementById('magFill');
   const magThumb = document.getElementById('magThumb');
   const magTicks = document.getElementById('magTicks');
+  const magSwitchLayer = document.getElementById('magSwitchLayer');
   let currentDetent = 4;
 
   for (let i = 1; i <= 7; i++) {
     const dot = document.createElement('span');
     dot.className = 'mag-tick' + (i <= currentDetent ? ' passed' : '');
     magTicks.appendChild(dot);
+
+    const cell = document.createElement('div');
+    cell.className = 'mag-switch-cell';
+    const sw = document.createElement('input');
+    sw.type = 'checkbox';
+    sw.setAttribute('switch', '');
+    sw.dataset.step = String(i);
+
+    sw.addEventListener('pointerdown', () => applyDetentUI(i, true));
+    sw.addEventListener('change', () => applyDetentUI(i, true));
+
+    cell.appendChild(sw);
+    magSwitchLayer.appendChild(cell);
   }
 
   function applyDetentUI(step, triggerSound) {
@@ -1629,35 +1643,44 @@
     if (triggerSound && step !== currentDetent) {
       currentDetent = step;
       feedback(0.75 + step * 0.08, 22);
-      const sw = document.getElementById('magSwitchInput');
-      if (sw) sw.checked = !sw.checked;
     } else {
       currentDetent = step;
     }
   }
 
-  function handleSliderPointer(clientX, isInitialTap) {
+  function handleSlideMove(clientX, clientY) {
     const rect = magSlider.getBoundingClientRect();
     const ratio = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
     const nearestStep = Math.round(ratio * 6) + 1;
-    if (isInitialTap && nearestStep === currentDetent) {
-      feedback(0.75 + nearestStep * 0.08, 20);
+
+    if (nearestStep !== currentDetent) {
+      const elUnderFinger = document.elementFromPoint(clientX, clientY);
+      if (elUnderFinger && elUnderFinger.tagName === 'INPUT') {
+        elUnderFinger.click();
+      }
+      applyDetentUI(nearestStep, true);
     }
-    applyDetentUI(nearestStep, true);
   }
 
+  magSlider.addEventListener('touchstart', () => magSlider.classList.add('dragging'), { passive: true });
+  magSlider.addEventListener('touchmove', (e) => {
+    if (!e.touches || !e.touches[0]) return;
+    handleSlideMove(e.touches[0].clientX, e.touches[0].clientY);
+  }, { passive: true });
+  magSlider.addEventListener('touchend', () => magSlider.classList.remove('dragging'));
+
   magSlider.addEventListener('pointerdown', (e) => {
-    magSlider.classList.add('dragging');
-    magSlider.setPointerCapture(e.pointerId);
-    handleSliderPointer(e.clientX, true);
+    if (e.pointerType === 'mouse') {
+      magSlider.classList.add('dragging');
+      handleSlideMove(e.clientX, e.clientY);
+    }
   });
   magSlider.addEventListener('pointermove', (e) => {
-    if (!magSlider.classList.contains('dragging')) return;
-    handleSliderPointer(e.clientX, false);
+    if (e.pointerType === 'mouse' && magSlider.classList.contains('dragging')) {
+      handleSlideMove(e.clientX, e.clientY);
+    }
   });
-  const endSlide = () => magSlider.classList.remove('dragging');
-  magSlider.addEventListener('pointerup', endSlide);
-  magSlider.addEventListener('pointercancel', endSlide);
+  magSlider.addEventListener('pointerup', () => magSlider.classList.remove('dragging'));
   applyDetentUI(4, false);
 
   document.getElementById('pulseSwitchInput').onpointerdown = () => {
