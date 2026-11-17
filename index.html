@@ -573,9 +573,18 @@
 
         <div>
           <div class="card accent-amber">
-            <div class="card-title"><span>MAGNETIC DETENT SLIDER</span><span id="detentVal" style="color:var(--amber)">Level 4/7</span></div>
-            <div class="detent-track" id="detentTrack"></div>
+            <div class="card-title">
+              <span>MAGNETIC DETENT SLIDER</span>
+              <span id="detentVal" style="color:var(--amber)">Level 4 / 7</span>
+            </div>
+            <div class="mag-slider" id="magSlider">
+              <div class="mag-fill" id="magFill"></div>
+              <div class="mag-ticks" id="magTicks"></div>
+              <div class="mag-thumb" id="magThumb"></div>
+              <input type="checkbox" switch class="native-hit-switch" id="magSwitchInput">
+            </div>
           </div>
+          
           <div class="card accent-rose">
             <div class="card-title"><span>RHYTHM PULSE PAD</span><span id="tapCount" style="color:var(--rose)">0 ketukan</span></div>
             <div class="pulse-wrap" id="pulsePadWrap">
