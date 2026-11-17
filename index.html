@@ -7,7 +7,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="TenangFokus">
 <meta name="theme-color" content="#0b0f17">
-<title>TenangFokus v.2.6 by rudymuda</title>
+<link id="appleTouchIcon" rel="apple-touch-icon" sizes="180x180">
+<link id="appManifest" rel="manifest">
+<title>TenangFokus v.2.7 by rudymuda</title>
 <style>
   :root {
     --bg: #0b0f17; --surface: #131a26; --surface-2: #1c2536; --border: #273349;
@@ -25,7 +27,6 @@
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
     font-size: 14px; line-height: 1.5; padding-top: env(safe-area-inset-top);
   }
-  .sr-switch { position: fixed; left: -120px; top: 0; width: 48px; height: 28px; opacity: 0.01; pointer-events: none; }
   .app-shell { min-height: 100vh; padding: 14px 16px 96px; }
   .sidebar { display: none; }
   .mobile-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
@@ -42,13 +43,13 @@
   .view.active { display: block; }
 
   .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(19,26,38,.96); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-top: 1px solid var(--border); display: flex; padding: 6px 2px calc(6px + env(safe-area-inset-bottom)); z-index: 30; }
-  .bottom-nav label { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 10px; font-weight: 600; color: var(--muted); border-radius: 10px; padding: 6px 2px; min-height: 52px; cursor: pointer; user-select: none; }
-  .bottom-nav label.active[data-color="sky"] { color: var(--sky); }
-  .bottom-nav label.active[data-color="indigo"] { color: var(--indigo); }
-  .bottom-nav label.active[data-color="emerald"] { color: var(--emerald); }
-  .bottom-nav label.active[data-color="amber"] { color: var(--amber); }
-  .bottom-nav label.active[data-color="violet"] { color: var(--violet); }
-  .bottom-nav label.active[data-color="rose"] { color: var(--rose); }
+  .bottom-nav button { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 10px; font-weight: 600; background: transparent; color: var(--muted); border-radius: 10px; padding: 6px 2px; min-height: 52px; }
+  .bottom-nav button.active[data-color="sky"] { color: var(--sky); }
+  .bottom-nav button.active[data-color="indigo"] { color: var(--indigo); }
+  .bottom-nav button.active[data-color="emerald"] { color: var(--emerald); }
+  .bottom-nav button.active[data-color="amber"] { color: var(--amber); }
+  .bottom-nav button.active[data-color="violet"] { color: var(--violet); }
+  .bottom-nav button.active[data-color="rose"] { color: var(--rose); }
 
   .mobile-footer-credit { text-align: center; font-size: 11px; color: var(--muted); opacity: 0.75; margin-top: 18px; padding-bottom: 8px; }
 
@@ -99,7 +100,6 @@
   input:focus, select:focus, textarea:focus { border-color: var(--indigo); background: var(--bg); }
   textarea { resize: vertical; min-height: 82px; }
 
-  /* Modal Sync Settings */
   .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.72); backdrop-filter: blur(6px); display: none; align-items: center; justify-content: center; padding: 16px; z-index: 50; }
   .modal-backdrop.open { display: flex; }
   .modal-box { background: var(--surface); border: 1px solid var(--border); border-radius: 22px; padding: 20px; width: 100%; max-width: 440px; }
@@ -160,40 +160,56 @@
   .note-title { font-weight: 700; color: var(--text); margin-bottom: 4px; }
   .note-snippet { font-size: 12px; color: var(--muted); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 
+  /* IN-PLACE DIRECT HIT-TARGET iOS 17.4+ TAPTIC SWITCHES */
   .bubbles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 8px; }
-  .bubble-label { display: block; aspect-ratio: 1; border-radius: 50%; background: var(--surface-2); border: 2px solid var(--border); transition: transform .08s, background .1s, border-color .1s; cursor: pointer; user-select: none; }
-  .bubble-label.popped { background: var(--rose-bg); border-color: var(--rose); transform: scale(.9); }
+  .bubble-wrap {
+    position: relative; aspect-ratio: 1; border-radius: 50%; background: var(--surface-2);
+    border: 2px solid var(--border); transition: transform .06s, background .08s, border-color .08s;
+    overflow: hidden;
+  }
+  .bubble-wrap.popped { background: var(--rose-bg); border-color: var(--rose); transform: scale(.91); }
+  .native-hit-switch {
+    position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; padding: 0;
+    opacity: 0.015; cursor: pointer; z-index: 2; -webkit-appearance: none; appearance: none;
+  }
+  /* Allow native iOS switch behavior without stripping switch role */
+  input[switch].native-hit-switch {
+    -webkit-appearance: auto; appearance: auto; transform: scale(3.5);
+  }
 
   .detent-track { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin: 12px 0; }
-  .detent-label { display: block; height: 46px; border-radius: 12px; background: var(--surface-2); border: 1px solid var(--border); cursor: pointer; user-select: none; }
-  .detent-label.active { background: linear-gradient(135deg, var(--rose), var(--amber)); border-color: transparent; }
+  .detent-wrap {
+    position: relative; height: 48px; border-radius: 12px; background: var(--surface-2);
+    border: 1px solid var(--border); overflow: hidden;
+  }
+  .detent-wrap.active { background: linear-gradient(135deg, var(--rose), var(--amber)); border-color: transparent; }
 
-  .pulse-pad-label { width: 100%; height: 104px; border-radius: 18px; background: radial-gradient(circle, var(--rose-bg), var(--surface-2)); border: 2px solid rgba(251,113,133,.45); display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--rose); font-weight: 700; cursor: pointer; user-select: none; }
-  .pulse-pad-label:active { transform: scale(.96); }
+  .pulse-wrap {
+    position: relative; width: 100%; height: 104px; border-radius: 18px;
+    background: radial-gradient(circle, var(--rose-bg), var(--surface-2));
+    border: 2px solid rgba(251,113,133,.45);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    color: var(--rose); font-weight: 700; overflow: hidden; user-select: none;
+  }
+  .pulse-wrap:active { transform: scale(.96); }
 </style>
 </head>
 <body>
-
-<div id="hapticSwitchPool" aria-hidden="true">
-  <input type="checkbox" switch id="sw-nav" class="sr-switch">
-  <input type="checkbox" switch id="sw-pulse" class="sr-switch">
-  <input type="checkbox" switch id="sw-check" class="sr-switch">
-</div>
 
 <!-- MODAL KONEKSI GOOGLE CALENDAR & SHEETS -->
 <div class="modal-backdrop" id="syncModal">
   <div class="modal-box">
     <div class="card-title">
       <span>KONEKSI GOOGLE CALENDAR & SHEETS</span>
-      <button class="chip" onclick="closeSyncModal()">Tutup</button>
+      <button class="chip" onpointerdown="closeSyncModal()">Tutup</button>
     </div>
     <p style="font-size:12px;color:var(--muted);margin:0 0 12px">
-      Tempel <strong>Web app URL</strong> dari Google Apps Script (<code style="color:var(--sky)">https://script.google.com/macros/s/.../exec</code>) agar jadwal Google Calendar dan catatanmu tersinkron otomatis.
+      Tempel <strong>Web app URL</strong> dari Google Apps Script (<code style="color:var(--sky)">https://script.google.com/macros/s/.../exec</code>) untuk memuat semua kalender Google dan tugasmu.
     </p>
     <input id="gasUrlInput" placeholder="https://script.google.com/macros/s/.../exec" style="margin-bottom:10px">
     <div class="row">
-      <button class="btn-indigo" style="flex:2" onclick="saveGasUrl()">Hubungkan & Sync</button>
-      <button style="flex:1" onclick="syncNow()">Refresh</button>
+      <button class="btn-indigo" style="flex:2" onpointerdown="saveGasUrl()">Hubungkan & Sync</button>
+      <button style="flex:1" onpointerdown="syncNow()">Refresh</button>
     </div>
     <div id="syncModalMsg" style="font-size:11px;color:var(--emerald);margin-top:8px"></div>
   </div>
@@ -207,42 +223,42 @@
         <div class="brand-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg></div>
         <div>
           TenangFokus
-          <span class="brand-sub">v.2.6 by rudymuda</span>
+          <span class="brand-sub">v.2.7 by rudymuda</span>
         </div>
       </div>
       <div class="side-menu">
-        <button class="side-btn active" data-tab="cal" data-color="indigo" onclick="switchTab('cal')">
+        <button class="side-btn active" data-tab="cal" data-color="indigo" onpointerdown="switchTab('cal')">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
           Google Calendar
         </button>
-        <button class="side-btn" data-tab="focus" data-color="sky" onclick="switchTab('focus')">
+        <button class="side-btn" data-tab="focus" data-color="sky" onpointerdown="switchTab('focus')">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
           Fokus, Grit & Tasks
         </button>
-        <button class="side-btn" data-tab="habit" data-color="emerald" onclick="switchTab('habit')">
+        <button class="side-btn" data-tab="habit" data-color="emerald" onpointerdown="switchTab('habit')">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
           Habit Tracker
         </button>
-        <button class="side-btn" data-tab="money" data-color="amber" onclick="switchTab('money')">
+        <button class="side-btn" data-tab="money" data-color="amber" onpointerdown="switchTab('money')">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2.5"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
           Money Tracker
         </button>
-        <button class="side-btn" data-tab="notes" data-color="violet" onclick="switchTab('notes')">
+        <button class="side-btn" data-tab="notes" data-color="violet" onpointerdown="switchTab('notes')">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
           Notes & Brain Dump
         </button>
-        <button class="side-btn" data-tab="fidget" data-color="rose" onclick="switchTab('fidget')">
+        <button class="side-btn" data-tab="fidget" data-color="rose" onpointerdown="switchTab('fidget')">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg>
           Fidget & Napas
         </button>
       </div>
     </div>
     <div>
-      <div class="status-pill" style="width:100%;justify-content:center;margin-bottom:8px" id="syncBadgeDesk" onclick="openSyncModal()">
+      <div class="status-pill" style="width:100%;justify-content:center;margin-bottom:8px" id="syncBadgeDesk" onpointerdown="openSyncModal()">
         <span class="dot"></span>
         <span id="syncTextDesk">Hubungkan Google</span>
       </div>
-      <div class="status-pill" style="width:100%;justify-content:center" id="wakeBtnDesk" onclick="toggleWakeLock()">
+      <div class="status-pill" style="width:100%;justify-content:center" id="wakeBtnDesk" onpointerdown="toggleWakeLock()">
         <span id="wakeTextDesk">Layar: Auto</span>
       </div>
     </div>
@@ -255,15 +271,15 @@
         <div class="brand-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg></div>
         <div>
           TenangFokus
-          <span class="brand-sub">v.2.6 by rudymuda</span>
+          <span class="brand-sub">v.2.7 by rudymuda</span>
         </div>
       </div>
       <div class="row">
-        <div class="status-pill" id="syncBadgeMob" onclick="openSyncModal()">
+        <div class="status-pill" id="syncBadgeMob" onpointerdown="openSyncModal()">
           <span class="dot"></span>
           <span id="syncTextMob">Connect</span>
         </div>
-        <div class="status-pill" id="wakeBtnMob" onclick="toggleWakeLock()">
+        <div class="status-pill" id="wakeBtnMob" onpointerdown="toggleWakeLock()">
           <span id="wakeTextMob">Layar</span>
         </div>
       </div>
@@ -276,16 +292,23 @@
           <div class="card accent-indigo">
             <div class="cal-toolbar">
               <div class="row">
-                <button class="cal-nav-btn" onclick="shiftCalendar(-1)">‹</button>
-                <strong id="calPeriodTitle" style="font-size:15px;min-width:130px;text-align:center">Kalender</strong>
-                <button class="cal-nav-btn" onclick="shiftCalendar(1)">›</button>
-                <button class="cal-nav-btn" onclick="jumpToday()">Hari ini</button>
+                <button class="cal-nav-btn" onpointerdown="shiftCalendar(-1)">‹</button>
+                <strong id="calPeriodTitle" style="font-size:15px;min-width:120px;text-align:center">Kalender</strong>
+                <button class="cal-nav-btn" onpointerdown="shiftCalendar(1)">›</button>
+                <button class="cal-nav-btn" onpointerdown="jumpToday()">Hari ini</button>
               </div>
               <div class="row">
-                <button class="chip selected-indigo" id="vMonth" onclick="setCalView('month')">Bulan</button>
-                <button class="chip" id="vWeek" onclick="setCalView('week')">Minggu</button>
-                <button class="chip" id="vDay" onclick="setCalView('day')">Hari</button>
+                <button class="chip selected-indigo" id="vMonth" onpointerdown="setCalView('month')">Bulan</button>
+                <button class="chip" id="vWeek" onpointerdown="setCalView('week')">Minggu</button>
+                <button class="chip" id="vDay" onpointerdown="setCalView('day')">Hari</button>
               </div>
+            </div>
+
+            <!-- FILTER KALENDER (SEMUA vs KALENDER TERTENTU) -->
+            <div style="margin-bottom:10px">
+              <select id="calFilterSelect" onchange="renderCalendar()" style="padding:8px 12px;font-size:13px">
+                <option value="ALL">Tampilkan Semua Kalender</option>
+              </select>
             </div>
 
             <div id="calMonthBox">
@@ -311,7 +334,7 @@
         <div class="card accent-sky" id="calFormCard">
           <div class="card-title">
             <span id="calFormHeader">TAMBAH JADWAL GOOGLE CALENDAR</span>
-            <button class="chip" id="cancelEditBtn" style="display:none" onclick="resetCalForm()">Batal Edit</button>
+            <button class="chip" id="cancelEditBtn" style="display:none" onpointerdown="resetCalForm()">Batal Edit</button>
           </div>
           <div style="display:flex;flex-direction:column;gap:10px">
             <input type="hidden" id="evId">
@@ -340,7 +363,7 @@
             </div>
             <input id="evLoc" placeholder="Lokasi atau link meeting (opsional)">
             <textarea id="evDesc" placeholder="Catatan jadwal (opsional)" style="min-height:60px"></textarea>
-            <button class="btn-indigo" style="width:100%" id="evSubmitBtn" onclick="submitCalendarEvent()">Simpan ke Google Calendar</button>
+            <button class="btn-indigo" style="width:100%" id="evSubmitBtn" onpointerdown="submitCalendarEvent()">Simpan ke Google Calendar</button>
           </div>
         </div>
       </div>
@@ -356,25 +379,25 @@
               <span style="color:var(--sky)" id="gritStat">Hari ini: 0 mnt</span>
             </div>
             <div class="row" style="justify-content:center">
-              <button class="chip selected" id="m15" onclick="setTimer(15,this)">15 mnt</button>
-              <button class="chip" id="m25" onclick="setTimer(25,this)">25 mnt</button>
-              <button class="chip" id="m45" onclick="setTimer(45,this)">45 mnt</button>
+              <button class="chip selected" id="m15" onpointerdown="setTimer(15,this)">15 mnt</button>
+              <button class="chip" id="m25" onpointerdown="setTimer(25,this)">25 mnt</button>
+              <button class="chip" id="m45" onpointerdown="setTimer(45,this)">45 mnt</button>
             </div>
             <div class="timer-num" id="timerDisplay">15:00</div>
             <div class="row">
-              <button class="btn-sky" style="flex:2" id="timerBtn" onclick="toggleTimer()">Mulai Sprint</button>
-              <button style="flex:1" onclick="resetTimer()">Reset</button>
+              <button class="btn-sky" style="flex:2" id="timerBtn" onpointerdown="toggleTimer()">Mulai Sprint</button>
+              <button style="flex:1" onpointerdown="resetTimer()">Reset</button>
             </div>
 
             <div class="ambient-box">
               <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
                 <span style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase">Ambient Sound Fokus</span>
-                <button class="chip" id="ambientToggleBtn" onclick="toggleAmbient()">Off</button>
+                <button class="chip" id="ambientToggleBtn" onpointerdown="toggleAmbient()">Off</button>
               </div>
               <div class="row" style="margin-bottom:10px">
-                <button class="chip selected" id="snd-brown" onclick="selectAmbientType('brown')">Brown Noise</button>
-                <button class="chip" id="snd-pink" onclick="selectAmbientType('pink')">Pink Noise</button>
-                <button class="chip" id="snd-rain" onclick="selectAmbientType('rain')">Hujan Lembut</button>
+                <button class="chip selected" id="snd-brown" onpointerdown="selectAmbientType('brown')">Brown Noise</button>
+                <button class="chip" id="snd-pink" onpointerdown="selectAmbientType('pink')">Pink Noise</button>
+                <button class="chip" id="snd-rain" onpointerdown="selectAmbientType('rain')">Hujan Lembut</button>
               </div>
               <div class="row">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/></svg>
@@ -395,7 +418,7 @@
           <div class="row" style="margin-bottom:8px"><input id="taskInput" placeholder="Tambah tugas atau langkah kecil..."></div>
           <div class="row" style="margin-bottom:12px">
             <input id="taskTime" type="datetime-local" style="font-size:13px;color:var(--muted)">
-            <button class="btn-emerald" style="flex:0 0 92px" onclick="submitTask()">Simpan</button>
+            <button class="btn-emerald" style="flex:0 0 92px" onpointerdown="submitTask()">Simpan</button>
           </div>
           <div id="taskList"></div>
         </div>
@@ -409,7 +432,7 @@
           <div class="card-title"><span>HABIT TRACKER HARIAN</span><span id="habitProgress" style="color:var(--emerald)">0/0 selesai</span></div>
           <div class="row" style="margin-bottom:12px">
             <input id="habitInput" placeholder="Kebiasaan baru (mis. Baca 10 hal)...">
-            <button class="btn-emerald" style="flex:0 0 92px" onclick="submitHabit()">Tambah</button>
+            <button class="btn-emerald" style="flex:0 0 92px" onpointerdown="submitHabit()">Tambah</button>
           </div>
           <div id="habitList"></div>
         </div>
@@ -456,7 +479,7 @@
             <div class="row" style="margin-bottom:8px"><input id="finAmt" type="number" inputmode="numeric" placeholder="Nominal (Rp)"></div>
             <div class="row">
               <input id="finNote" placeholder="Catatan singkat (opsional)">
-              <button class="btn-amber" style="flex:0 0 92px" onclick="submitFin()">Catat</button>
+              <button class="btn-amber" style="flex:0 0 92px" onpointerdown="submitFin()">Catat</button>
             </div>
           </div>
           <div class="card accent-sky">
@@ -471,17 +494,17 @@
     <div id="tab-notes" class="view">
       <div class="desktop-grid-2">
         <div class="card accent-violet">
-          <div class="card-title"><span>NOTES (CATATAN TERSTRUKTUR)</span><button class="chip" onclick="clearNoteForm()">+ Baru</button></div>
+          <div class="card-title"><span>NOTES (CATATAN TERSTRUKTUR)</span><button class="chip" onpointerdown="clearNoteForm()">+ Baru</button></div>
           <input type="hidden" id="noteId">
           <input id="noteTitle" placeholder="Judul catatan..." style="margin-bottom:8px">
           <textarea id="noteBody" placeholder="Tulis catatan lengkap, ringkasan rapat, atau referensi..."></textarea>
-          <button class="btn-violet" style="width:100%;margin-top:8px" onclick="submitNote()">Simpan Note</button>
+          <button class="btn-violet" style="width:100%;margin-top:8px" onpointerdown="submitNote()">Simpan Note</button>
           <div class="notes-grid" id="notesGrid"></div>
         </div>
         <div>
           <div class="card accent-sky">
             <div class="card-title"><span>REM IMPULSIF PERCAKAPAN</span></div>
-            <button class="tonal-violet" style="width:100%" id="pauseBtn" onclick="triggerPause()">Jeda 2 Detik + Tarik Napas Sebelum Bicara</button>
+            <button class="tonal-violet" style="width:100%" id="pauseBtn" onpointerdown="triggerPause()">Jeda 2 Detik + Tarik Napas Sebelum Bicara</button>
           </div>
           <div class="card accent-amber">
             <div class="card-title"><span>BRAIN DUMP & PARKIR IDE CEPAT</span></div>
@@ -493,14 +516,14 @@
               </select>
               <input id="dumpInput" placeholder="Tangkap kata kunci cepat...">
             </div>
-            <button class="btn-amber" style="width:100%" onclick="submitDump()">Parkirkan Ide</button>
+            <button class="btn-amber" style="width:100%" onpointerdown="submitDump()">Parkirkan Ide</button>
             <div id="dumpList" style="margin-top:10px"></div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- TAB 6: FIDGET (100% DIRECT iOS TAPTIC ENGINE) -->
+    <!-- TAB 6: FIDGET (IN-PLACE iOS SWITCH + ZERO-LATENCY POINTERDOWN AUDIO) -->
     <div id="tab-fidget" class="view">
       <div class="desktop-grid-3">
         <div class="card accent-sky">
@@ -509,13 +532,13 @@
             <div id="breathPhase" style="font-size:18px;font-weight:700;color:var(--sky)">Siap</div>
             <div id="breathCount" style="font-size:44px;font-weight:700;margin:4px 0">4</div>
           </div>
-          <button class="btn-sky" style="width:100%" id="breathBtn" onclick="toggleBreathing()">Mulai Panduan Napas</button>
+          <button class="btn-sky" style="width:100%" id="breathBtn" onpointerdown="toggleBreathing()">Mulai Panduan Napas</button>
         </div>
 
         <div class="card accent-rose">
           <div class="card-title">
             <span>TACTILE BUBBLE GRID</span>
-            <button class="chip selected" id="soundToggleChip" onclick="toggleClickSound()">Klik: On</button>
+            <button class="chip selected" id="soundToggleChip" onpointerdown="toggleClickSound()">Klik: On</button>
           </div>
           <div class="bubbles" id="bubbleGrid"></div>
         </div>
@@ -527,48 +550,92 @@
           </div>
           <div class="card accent-rose">
             <div class="card-title"><span>RHYTHM PULSE PAD</span><span id="tapCount" style="color:var(--rose)">0 ketukan</span></div>
-            <label for="sw-pulse" class="pulse-pad-label" onclick="onPulseTap()">
+            <div class="pulse-wrap" id="pulsePadWrap">
               <span>TEKAN BERIRAMA</span>
-              <span style="font-size:11px;font-weight:400;color:var(--muted);margin-top:4px">Direct iOS Taptic Engine + klik mekanis</span>
-            </label>
+              <span style="font-size:11px;font-weight:400;color:var(--muted);margin-top:4px">In-place iOS Taptic + klik instan</span>
+              <input type="checkbox" switch class="native-hit-switch" id="pulseSwitchInput">
+            </div>
           </div>
         </div>
       </div>
     </div>
 
-    <div class="mobile-footer-credit">TenangFokus v.2.6 by rudymuda</div>
+    <div class="mobile-footer-credit">TenangFokus v.2.7 by rudymuda</div>
   </main>
 
   <nav class="bottom-nav">
-    <label for="sw-nav" class="active" data-tab="cal" data-color="indigo" onclick="switchTab('cal')">
+    <button class="active" data-tab="cal" data-color="indigo" onpointerdown="switchTab('cal')">
       <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
       Kalender
-    </label>
-    <label for="sw-nav" data-tab="focus" data-color="sky" onclick="switchTab('focus')">
+    </button>
+    <button data-tab="focus" data-color="sky" onpointerdown="switchTab('focus')">
       <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
       Fokus
-    </label>
-    <label for="sw-nav" data-tab="habit" data-color="emerald" onclick="switchTab('habit')">
+    </button>
+    <button data-tab="habit" data-color="emerald" onpointerdown="switchTab('habit')">
       <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
       Habit
-    </label>
-    <label for="sw-nav" data-tab="money" data-color="amber" onclick="switchTab('money')">
+    </button>
+    <button data-tab="money" data-color="amber" onpointerdown="switchTab('money')">
       <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2.5"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
       Uang
-    </label>
-    <label for="sw-nav" data-tab="notes" data-color="violet" onclick="switchTab('notes')">
+    </button>
+    <button data-tab="notes" data-color="violet" onpointerdown="switchTab('notes')">
       <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
       Notes
-    </label>
-    <label for="sw-nav" data-tab="fidget" data-color="rose" onclick="switchTab('fidget')">
+    </button>
+    <button data-tab="fidget" data-color="rose" onpointerdown="switchTab('fidget')">
       <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg>
       Fidget
-    </label>
+    </button>
   </nav>
 </div>
 
 <script>
-  const STORAGE_KEY = 'tenangfokus_v26_rudymuda';
+  // === GENERATE APPLE TOUCH ICON (180x180 PNG) & PWA MANIFEST AUTOMATICALLY ===
+  (function generateAppIcon() {
+    try {
+      const c = document.createElement('canvas');
+      c.width = 180; c.height = 180;
+      const ctx = c.getContext('2d');
+      const grad = ctx.createLinearGradient(0, 0, 180, 180);
+      grad.addColorStop(0, '#0f172a');
+      grad.addColorStop(1, '#1e1b4b');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, 180, 180);
+
+      const ringGrad = ctx.createLinearGradient(30, 30, 150, 150);
+      ringGrad.addColorStop(0, '#38bdf8');
+      ringGrad.addColorStop(1, '#818cf8');
+      ctx.strokeStyle = ringGrad;
+      ctx.lineWidth = 14;
+      ctx.beginPath();
+      ctx.arc(90, 90, 52, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.fillStyle = '#38bdf8';
+      ctx.beginPath();
+      ctx.arc(90, 90, 18, 0, Math.PI * 2);
+      ctx.fill();
+
+      const pngUrl = c.toDataURL('image/png');
+      document.getElementById('appleTouchIcon').href = pngUrl;
+
+      const manifest = {
+        name: 'TenangFokus by rudymuda',
+        short_name: 'TenangFokus',
+        start_url: '.',
+        display: 'standalone',
+        background_color: '#0b0f17',
+        theme_color: '#0b0f17',
+        icons: [{ src: pngUrl, sizes: '180x180', type: 'image/png' }]
+      };
+      const blob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
+      document.getElementById('appManifest').href = URL.createObjectURL(blob);
+    } catch (e) {}
+  })();
+
+  const STORAGE_KEY = 'tenangfokus_v27_rudymuda';
   const GAS_URL_KEY = 'tenangfokus_gas_url';
   let gasUrl = localStorage.getItem(GAS_URL_KEY) || '';
 
@@ -583,84 +650,7 @@
   let loadedMonth = selectedDate.slice(0, 7);
   let targetMins = 15, timerSec = 900, timerInterval = null, breathInterval = null, wakeLock = null, tapTotal = 0;
 
-  // === CLOUD SYNC ENGINE (GITHUB PAGES <-> GOOGLE APPS SCRIPT) ===
-  function updateSyncBadges(statusText, isConnected) {
-    ['syncBadgeDesk', 'syncBadgeMob'].forEach(id => {
-      const el = document.getElementById(id);
-      el.classList.toggle('active', isConnected);
-      el.classList.toggle('warn', !isConnected);
-    });
-    document.getElementById('syncTextDesk').textContent = statusText;
-    document.getElementById('syncTextMob').textContent = isConnected ? 'Synced' : 'Connect';
-  }
-
-  function openSyncModal() {
-    document.getElementById('gasUrlInput').value = gasUrl;
-    document.getElementById('syncModalMsg').textContent = gasUrl ? 'Terhubung ke Google Apps Script.' : '';
-    document.getElementById('syncModal').classList.add('open');
-  }
-  function closeSyncModal() { document.getElementById('syncModal').classList.remove('open'); }
-
-  function saveGasUrl() {
-    const val = document.getElementById('gasUrlInput').value.trim();
-    gasUrl = val;
-    localStorage.setItem(GAS_URL_KEY, val);
-    if (val) {
-      document.getElementById('syncModalMsg').textContent = 'Menghubungkan ke Google Calendar & Sheets...';
-      syncNow(true);
-    } else {
-      updateSyncBadges('Mode Lokal', false);
-    }
-  }
-
-  async function apiGet(anchor) {
-    if (!gasUrl) { updateSyncBadges('Hubungkan Google', false); return; }
-    updateSyncBadges('Syncing...', true);
-    try {
-      const sep = gasUrl.includes('?') ? '&' : '?';
-      const res = await fetch(`${gasUrl}${sep}action=getAllData&anchor=${encodeURIComponent(anchor || selectedDate)}`);
-      const data = await res.json();
-      if (data && !data.error) {
-        state = data;
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-        renderAll();
-        updateSyncBadges('Google Synced', true);
-        document.getElementById('syncModalMsg').textContent = 'Berhasil tersinkron dengan Google Calendar & Sheets!';
-      }
-    } catch (e) {
-      updateSyncBadges('Gagal Sync', false);
-      document.getElementById('syncModalMsg').textContent = 'Gagal terhubung. Pastikan akses Web App diatur ke "Anyone".';
-    }
-  }
-
-  async function apiPost(payloadObj) {
-    if (!gasUrl) {
-      alert('Klik tombol "Connect" di atas dan masukkan URL Web App Google Apps Script dulu ya!');
-      openSyncModal();
-      return;
-    }
-    updateSyncBadges('Menyimpan...', true);
-    try {
-      const res = await fetch(gasUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(payloadObj)
-      });
-      const data = await res.json();
-      if (data && !data.error) {
-        state = data;
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-        renderAll();
-        updateSyncBadges('Google Synced', true);
-      }
-    } catch (e) {
-      updateSyncBadges('Error Sync', false);
-    }
-  }
-
-  function syncNow(fromModal) { apiGet(selectedDate).then(() => { if (fromModal) setTimeout(closeSyncModal, 700); }); }
-
-  // === AUDIO & HAPTIC ENGINE ===
+  // === ZERO-LATENCY WEB AUDIO ENGINE (UNLOCKED ON EVERY TOUCH) ===
   let audioCtx = null, clickBuffer = null, ambientSource = null, ambientFilter = null, ambientGain = null;
   let isAmbientOn = false, ambientType = 'brown', ambientVolume = 0.40, clickSoundOn = true;
 
@@ -669,34 +659,41 @@
       const AC = window.AudioContext || window.webkitAudioContext;
       if (!AC) return;
       audioCtx = new AC();
-      const len = Math.floor(audioCtx.sampleRate * 0.022);
+      const len = Math.floor(audioCtx.sampleRate * 0.02);
       clickBuffer = audioCtx.createBuffer(1, len, audioCtx.sampleRate);
       const data = clickBuffer.getChannelData(0);
       for (let i = 0; i < len; i++) {
         const t = i / audioCtx.sampleRate;
-        data[i] = (Math.sin(2 * Math.PI * 820 * t) * 0.65 + (Math.random() * 2 - 1) * 0.35) * Math.exp(-t * 240);
+        data[i] = (Math.sin(2 * Math.PI * 860 * t) * 0.7 + (Math.random() * 2 - 1) * 0.3) * Math.exp(-t * 260);
       }
     }
     if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
   }
-  document.addEventListener('pointerdown', initAudioEngine, { once: true, passive: true });
+  window.addEventListener('pointerdown', initAudioEngine, { passive: true });
+  window.addEventListener('touchstart', initAudioEngine, { passive: true });
 
   function playClickSound(rate = 1.0) {
     if (!clickSoundOn) return;
     initAudioEngine();
     if (!audioCtx || !clickBuffer) return;
     const src = audioCtx.createBufferSource();
-    src.buffer = clickBuffer; src.playbackRate.value = rate;
-    const g = audioCtx.createGain(); g.gain.value = 0.55;
-    src.connect(g); g.connect(audioCtx.destination); src.start(0);
+    src.buffer = clickBuffer;
+    src.playbackRate.value = rate;
+    const g = audioCtx.createGain();
+    g.gain.value = 0.6;
+    src.connect(g);
+    g.connect(audioCtx.destination);
+    src.start(0);
   }
   function androidVib(ms = 16) { if (navigator.vibrate) navigator.vibrate(ms); }
+  function feedback(rate = 1.0, ms = 16) { playClickSound(rate); androidVib(ms); }
+
   function toggleClickSound() {
     clickSoundOn = !clickSoundOn;
     const chip = document.getElementById('soundToggleChip');
     chip.textContent = clickSoundOn ? 'Klik: On' : 'Klik: Off';
     chip.classList.toggle('selected', clickSoundOn);
-    if (clickSoundOn) { androidVib(14); playClickSound(1.1); }
+    if (clickSoundOn) feedback(1.1, 14);
   }
 
   function buildAmbientNodes() {
@@ -742,7 +739,7 @@
   function selectAmbientType(type) {
     ambientType = type;
     ['brown', 'pink', 'rain'].forEach(t => document.getElementById('snd-' + t).classList.toggle('selected', t === type));
-    androidVib(12); playClickSound(1.05);
+    feedback(1.05, 12);
     if (isAmbientOn) buildAmbientNodes();
   }
   function updateAmbientVolume(val) {
@@ -750,25 +747,98 @@
     if (ambientGain && audioCtx) ambientGain.gain.setTargetAtTime(ambientVolume * 0.45, audioCtx.currentTime, 0.03);
   }
 
+  // === CLOUD SYNC ENGINE ===
+  function updateSyncBadges(statusText, isConnected) {
+    ['syncBadgeDesk', 'syncBadgeMob'].forEach(id => {
+      const el = document.getElementById(id);
+      el.classList.toggle('active', isConnected);
+      el.classList.toggle('warn', !isConnected);
+    });
+    document.getElementById('syncTextDesk').textContent = statusText;
+    document.getElementById('syncTextMob').textContent = isConnected ? 'Synced' : 'Connect';
+  }
+  function openSyncModal() {
+    document.getElementById('gasUrlInput').value = gasUrl;
+    document.getElementById('syncModalMsg').textContent = gasUrl ? 'Terhubung ke Google Apps Script.' : '';
+    document.getElementById('syncModal').classList.add('open');
+  }
+  function closeSyncModal() { document.getElementById('syncModal').classList.remove('open'); }
+  function saveGasUrl() {
+    const val = document.getElementById('gasUrlInput').value.trim();
+    gasUrl = val; localStorage.setItem(GAS_URL_KEY, val);
+    if (val) { document.getElementById('syncModalMsg').textContent = 'Memuat semua kalender Google...'; syncNow(true); }
+    else updateSyncBadges('Mode Lokal', false);
+  }
+
+  async function apiGet(anchor) {
+    if (!gasUrl) { updateSyncBadges('Hubungkan Google', false); return; }
+    updateSyncBadges('Syncing...', true);
+    try {
+      const sep = gasUrl.includes('?') ? '&' : '?';
+      const res = await fetch(`${gasUrl}${sep}action=getAllData&anchor=${encodeURIComponent(anchor || selectedDate)}`);
+      const data = await res.json();
+      if (data && !data.error) {
+        state = data; localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        populateCalendarDropdowns();
+        renderAll();
+        updateSyncBadges('Google Synced', true);
+        document.getElementById('syncModalMsg').textContent = `Tersinkron (${(state.calendars || []).length} kalender ditemukan)!`;
+      }
+    } catch (e) {
+      updateSyncBadges('Gagal Sync', false);
+      document.getElementById('syncModalMsg').textContent = 'Gagal terhubung. Cek deployment Apps Script (Who has access: Anyone).';
+    }
+  }
+
+  async function apiPost(payloadObj) {
+    if (!gasUrl) { openSyncModal(); return; }
+    updateSyncBadges('Menyimpan...', true);
+    try {
+      const res = await fetch(gasUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payloadObj)
+      });
+      const data = await res.json();
+      if (data && !data.error) {
+        state = data; localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        populateCalendarDropdowns();
+        renderAll();
+        updateSyncBadges('Google Synced', true);
+      }
+    } catch (e) { updateSyncBadges('Error Sync', false); }
+  }
+  function syncNow(fromModal) { apiGet(selectedDate).then(() => { if (fromModal) setTimeout(closeSyncModal, 700); }); }
+
+  function populateCalendarDropdowns() {
+    const cals = state.calendars || [];
+    if (!cals.length) return;
+    const filterSel = document.getElementById('calFilterSelect');
+    const prevFilter = filterSel.value;
+    filterSel.innerHTML = `<option value="ALL">Semua Kalender (${cals.length})</option>` +
+      cals.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+    if (prevFilter && Array.from(filterSel.options).some(o => o.value === prevFilter)) filterSel.value = prevFilter;
+
+    const formSel = document.getElementById('evCalSelect');
+    const editable = cals.filter(c => c.canEdit);
+    formSel.innerHTML = (editable.length ? editable : cals).map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+  }
+
   function rupiah(n) { return 'Rp ' + Number(n || 0).toLocaleString('id-ID'); }
   function toKey(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
 
-  // === RENDER GOOGLE CALENDAR ===
   function renderCalendar() {
     const base = new Date(selectedDate + 'T12:00:00');
     const months = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
     const daysFull = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
     const daysShort = ['Min','Sen','Sel','Rab','Kam','Jum','Sab'];
 
-    const sel = document.getElementById('evCalSelect');
-    if (state.calendars && state.calendars.length > 0 && sel.dataset.loaded !== '1') {
-      sel.innerHTML = state.calendars.filter(c => c.canEdit).map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-      sel.dataset.loaded = '1';
-    }
     if (!document.getElementById('evDate').value) document.getElementById('evDate').value = selectedDate;
 
+    const filterCalId = document.getElementById('calFilterSelect').value;
     const evMap = {};
     (state.calEvents || []).forEach(ev => {
+      if (filterCalId !== 'ALL' && ev.calId !== filterCalId) return;
       if (!evMap[ev.dateKey]) evMap[ev.dateKey] = [];
       evMap[ev.dateKey].push(ev);
     });
@@ -782,7 +852,7 @@
         const cur = new Date(startGrid); cur.setDate(startGrid.getDate() + i);
         const k = toKey(cur);
         const dots = (evMap[k] || []).slice(0, 4).map(e => `<span class="cal-dot" style="background:${e.color}"></span>`).join('');
-        html += `<div class="cal-cell ${cur.getMonth() !== base.getMonth() ? 'other-month' : ''} ${k === state.todayKey ? 'today' : ''} ${k === selectedDate ? 'selected' : ''}" onclick="selectCalDate('${k}')">
+        html += `<div class="cal-cell ${cur.getMonth() !== base.getMonth() ? 'other-month' : ''} ${k === state.todayKey ? 'today' : ''} ${k === selectedDate ? 'selected' : ''}" onpointerdown="selectCalDate('${k}')">
           <div class="cal-day-num">${cur.getDate()}</div>
           <div class="cal-dots">${dots}</div>
         </div>`;
@@ -796,7 +866,7 @@
       for (let i = 0; i < 7; i++) {
         const cur = new Date(startW); cur.setDate(startW.getDate() + i);
         const k = toKey(cur), cnt = (evMap[k] || []).length;
-        wHtml += `<div class="week-day-card ${k === selectedDate ? 'selected' : ''}" onclick="selectCalDate('${k}')">
+        wHtml += `<div class="week-day-card ${k === selectedDate ? 'selected' : ''}" onpointerdown="selectCalDate('${k}')">
           <div style="font-size:10px;color:var(--muted)">${daysShort[i]}</div>
           <div style="font-weight:700;font-size:15px;margin:2px 0">${cur.getDate()}</div>
           <div style="font-size:10px;color:var(--indigo)">${cnt > 0 ? cnt + ' ac' : '·'}</div>
@@ -819,32 +889,31 @@
         </div>
         ${ev.canEdit ? `
           <div class="row" style="gap:4px">
-            <button class="icon-action" onclick="editCalendarEvent('${selectedDate}', ${idx})">
+            <button class="icon-action" onpointerdown="editCalendarEvent('${selectedDate}', ${idx})">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
             </button>
-            <button class="icon-action" onclick="doDeleteCal('${ev.calId}','${ev.id}')">✕</button>
+            <button class="icon-action" onpointerdown="doDeleteCal('${ev.calId}','${ev.id}')">✕</button>
           </div>` : ''}
       </div>
     `).join('') || '<div style="color:var(--muted);font-size:13px">Tidak ada agenda pada tanggal ini.</div>';
   }
 
   function setCalView(mode) {
-    androidVib(10); playClickSound(1.0); calMode = mode;
+    feedback(1.0, 10); calMode = mode;
     ['vMonth','vWeek','vDay'].forEach(id => document.getElementById(id).classList.remove('selected-indigo'));
     document.getElementById('v' + mode[0].toUpperCase() + mode.slice(1)).classList.add('selected-indigo');
     document.getElementById('calMonthBox').style.display = mode === 'month' ? 'block' : 'none';
     document.getElementById('calWeekBox').style.display = mode === 'week' ? 'block' : 'none';
     renderCalendar();
   }
-
   function selectCalDate(k) {
-    androidVib(10); playClickSound(0.95); selectedDate = k;
+    feedback(0.95, 10); selectedDate = k;
     document.getElementById('evDate').value = k;
     if (k.slice(0, 7) !== loadedMonth) { loadedMonth = k.slice(0, 7); apiGet(k); }
     else renderCalendar();
   }
   function shiftCalendar(dir) {
-    androidVib(12); playClickSound(0.9);
+    feedback(0.9, 12);
     const d = new Date(selectedDate + 'T12:00:00');
     if (calMode === 'month') d.setMonth(d.getMonth() + dir);
     else if (calMode === 'week') d.setDate(d.getDate() + dir * 7);
@@ -857,7 +926,7 @@
   function submitCalendarEvent() {
     const title = document.getElementById('evTitle').value.trim(), date = document.getElementById('evDate').value;
     if (!title || !date) return;
-    androidVib(18); playClickSound(1.15);
+    feedback(1.15, 18);
     const payload = {
       eventId: document.getElementById('evId').value,
       origCalId: document.getElementById('evOrigCalId').value,
@@ -875,9 +944,10 @@
   }
 
   function editCalendarEvent(dateKey, index) {
-    const ev = (state.calEvents || []).filter(e => e.dateKey === dateKey)[index];
+    const filterCalId = document.getElementById('calFilterSelect').value;
+    const ev = (state.calEvents || []).filter(e => e.dateKey === dateKey && (filterCalId === 'ALL' || e.calId === filterCalId))[index];
     if (!ev) return;
-    androidVib(14); playClickSound(1.1);
+    feedback(1.1, 14);
     document.getElementById('evId').value = ev.id;
     document.getElementById('evOrigCalId').value = ev.calId;
     document.getElementById('evTitle').value = ev.title;
@@ -903,7 +973,7 @@
     document.getElementById('evSubmitBtn').textContent = 'Simpan ke Google Calendar';
     document.getElementById('cancelEditBtn').style.display = 'none';
   }
-  function doDeleteCal(calId, eventId) { androidVib(22); playClickSound(0.7); apiPost({ fn: 'deleteCalendarEvent', calId, eventId, anchor: selectedDate }); }
+  function doDeleteCal(calId, eventId) { feedback(0.7, 22); apiPost({ fn: 'deleteCalendarEvent', calId, eventId, anchor: selectedDate }); }
 
   function renderAll() {
     renderCalendar();
@@ -920,9 +990,9 @@
     document.getElementById('taskList').innerHTML = (state.tasks || []).map(t => {
       const rem = t.reminder ? `<span class="badge-due">${t.reminder.replace('T', ' ')}</span>` : '';
       return `<div class="item-row ${t.done ? 'done' : ''}">
-        <label for="sw-check" class="check-circle" onclick="apiPost({fn:'toggleTask',id:'${t.id}'})">${t.done ? '✓' : ''}</label>
-        <label for="sw-check" class="item-body" onclick="apiPost({fn:'toggleTask',id:'${t.id}'})"><div class="item-text">${t.text}</div>${rem ? `<div class="item-meta">${rem}</div>` : ''}</label>
-        <button class="icon-action" onclick="apiPost({fn:'deleteRowById',sheetName:'Tasks',id:'${t.id}'})">✕</button>
+        <div class="check-circle" onpointerdown="feedback(1.2,16);apiPost({fn:'toggleTask',id:'${t.id}'})">${t.done ? '✓' : ''}</div>
+        <div class="item-body" onpointerdown="feedback(1.2,16);apiPost({fn:'toggleTask',id:'${t.id}'})"><div class="item-text">${t.text}</div>${rem ? `<div class="item-meta">${rem}</div>` : ''}</div>
+        <button class="icon-action" onpointerdown="feedback(0.7,20);apiPost({fn:'deleteRowById',sheetName:'Tasks',id:'${t.id}'})">✕</button>
       </div>`;
     }).join('') || '<div style="color:var(--muted);font-size:13px">Belum ada tugas aktif.</div>';
 
@@ -930,10 +1000,10 @@
     document.getElementById('habitProgress').textContent = `${doneH}/${(state.habits || []).length} selesai`;
     document.getElementById('habitList').innerHTML = (state.habits || []).map(h => `
       <div class="item-row ${h.doneToday ? 'done' : ''}">
-        <label for="sw-check" class="check-circle" onclick="apiPost({fn:'toggleHabit',id:'${h.id}'})">${h.doneToday ? '✓' : ''}</label>
-        <label for="sw-check" class="item-body" onclick="apiPost({fn:'toggleHabit',id:'${h.id}'})"><div class="item-text">${h.name}</div></label>
+        <div class="check-circle" onpointerdown="feedback(1.25,20);apiPost({fn:'toggleHabit',id:'${h.id}'})">${h.doneToday ? '✓' : ''}</div>
+        <div class="item-body" onpointerdown="feedback(1.25,20);apiPost({fn:'toggleHabit',id:'${h.id}'})"><div class="item-text">${h.name}</div></div>
         <span class="badge-streak">${h.streak} hari</span>
-        <button class="icon-action" onclick="apiPost({fn:'deleteRowById',sheetName:'Habits',id:'${h.id}'})">✕</button>
+        <button class="icon-action" onpointerdown="feedback(0.7,20);apiPost({fn:'deleteRowById',sheetName:'Habits',id:'${h.id}'})">✕</button>
       </div>`).join('');
 
     const h7 = state.habit7Days || [], maxH = Math.max((state.habits || []).length || 4, ...h7.map(x => x.count));
@@ -954,56 +1024,52 @@
     }).join('') || '<div style="color:var(--muted);font-size:13px">Belum ada pengeluaran bulan ini.</div>';
 
     document.getElementById('finList').innerHTML = (state.finance.items || []).map(f => `
-      <div class="item-row"><div class="item-body"><div class="item-text">${f.category} ${f.note ? '· ' + f.note : ''}</div><div class="item-meta">${f.date}</div></div><div style="font-weight:700;color:${f.type === 'Masuk' ? 'var(--emerald)' : 'var(--rose)'}">${f.type === 'Masuk' ? '+' : '-'}${rupiah(f.amount)}</div><button class="icon-action" onclick="apiPost({fn:'deleteRowById',sheetName:'Finance',id:'${f.id}'})">✕</button></div>`).join('') || '<div style="color:var(--muted);font-size:13px">Belum ada transaksi tercatat.</div>';
+      <div class="item-row"><div class="item-body"><div class="item-text">${f.category} ${f.note ? '· ' + f.note : ''}</div><div class="item-meta">${f.date}</div></div><div style="font-weight:700;color:${f.type === 'Masuk' ? 'var(--emerald)' : 'var(--rose)'}">${f.type === 'Masuk' ? '+' : '-'}${rupiah(f.amount)}</div><button class="icon-action" onpointerdown="feedback(0.7,20);apiPost({fn:'deleteRowById',sheetName:'Finance',id:'${f.id}'})">✕</button></div>`).join('') || '<div style="color:var(--muted);font-size:13px">Belum ada transaksi tercatat.</div>';
 
     document.getElementById('notesGrid').innerHTML = (state.notes || []).map(n => `
-      <div class="note-card" onclick="editNote('${n.id}')"><div style="display:flex;justify-content:space-between;align-items:center"><div class="note-title">${n.title}</div><span style="font-size:11px;color:var(--muted)" onclick="event.stopPropagation();apiPost({fn:'deleteRowById',sheetName:'Notes',id:'${n.id}'})">✕</span></div><div class="note-snippet">${n.body}</div><div style="font-size:10px;color:var(--violet);margin-top:6px">${n.updated}</div></div>`).join('');
+      <div class="note-card" onpointerdown="editNote('${n.id}')"><div style="display:flex;justify-content:space-between;align-items:center"><div class="note-title">${n.title}</div><span style="font-size:11px;color:var(--muted)" onpointerdown="event.stopPropagation();feedback(0.7,20);apiPost({fn:'deleteRowById',sheetName:'Notes',id:'${n.id}'})">✕</span></div><div class="note-snippet">${n.body}</div><div style="font-size:10px;color:var(--violet);margin-top:6px">${n.updated}</div></div>`).join('');
 
     document.getElementById('dumpList').innerHTML = (state.dumps || []).map(d => `
-      <div class="item-row"><div class="item-body"><div class="item-meta"><span style="color:var(--amber);font-weight:600">${d.tag}</span></div><div class="item-text">${d.text}</div></div><button class="icon-action" onclick="apiPost({fn:'deleteRowById',sheetName:'BrainDump',id:'${d.id}'})">✕</button></div>`).join('') || '<div style="color:var(--muted);font-size:13px">Kepala bersih, belum ada parkir ide.</div>';
+      <div class="item-row"><div class="item-body"><div class="item-meta"><span style="color:var(--amber);font-weight:600">${d.tag}</span></div><div class="item-text">${d.text}</div></div><button class="icon-action" onpointerdown="feedback(0.7,20);apiPost({fn:'deleteRowById',sheetName:'BrainDump',id:'${d.id}'})">✕</button></div>`).join('') || '<div style="color:var(--muted);font-size:13px">Kepala bersih, belum ada parkir ide.</div>';
   }
 
   function submitTask() {
     const inp = document.getElementById('taskInput'), rem = document.getElementById('taskTime');
     if (!inp.value.trim()) return;
-    androidVib(16); playClickSound(1.1);
-    apiPost({ fn: 'addTask', text: inp.value.trim(), reminder: rem.value, syncCal: true });
+    feedback(1.1, 16); apiPost({ fn: 'addTask', text: inp.value.trim(), reminder: rem.value, syncCal: true });
     inp.value = ''; rem.value = '';
   }
   function submitHabit() {
     const inp = document.getElementById('habitInput');
     if (!inp.value.trim()) return;
-    androidVib(16); playClickSound(1.1);
-    apiPost({ fn: 'addHabit', name: inp.value.trim() }); inp.value = '';
+    feedback(1.1, 16); apiPost({ fn: 'addHabit', name: inp.value.trim() }); inp.value = '';
   }
   function submitFin() {
     const amt = Number(document.getElementById('finAmt').value);
     if (!amt || amt <= 0) return;
-    androidVib(16); playClickSound(1.05);
-    apiPost({ fn: 'addTransaction', type: document.getElementById('finType').value, category: document.getElementById('finCat').value, amount: amt, note: document.getElementById('finNote').value.trim() });
+    feedback(1.05, 16); apiPost({ fn: 'addTransaction', type: document.getElementById('finType').value, category: document.getElementById('finCat').value, amount: amt, note: document.getElementById('finNote').value.trim() });
     document.getElementById('finAmt').value = ''; document.getElementById('finNote').value = '';
   }
   function submitNote() {
     const id = document.getElementById('noteId').value, title = document.getElementById('noteTitle').value.trim(), body = document.getElementById('noteBody').value.trim();
     if (!title && !body) return;
-    androidVib(16); playClickSound(1.1);
-    apiPost({ fn: 'saveNote', id, title, body }); clearNoteForm();
+    feedback(1.1, 16); apiPost({ fn: 'saveNote', id, title, body }); clearNoteForm();
   }
   function editNote(id) {
     const n = (state.notes || []).find(x => x.id === id);
     if (!n) return;
+    feedback(1.0, 12);
     document.getElementById('noteId').value = n.id; document.getElementById('noteTitle').value = n.title; document.getElementById('noteBody').value = n.body;
   }
   function clearNoteForm() { document.getElementById('noteId').value = ''; document.getElementById('noteTitle').value = ''; document.getElementById('noteBody').value = ''; }
   function submitDump() {
     const inp = document.getElementById('dumpInput');
     if (!inp.value.trim()) return;
-    androidVib(16); playClickSound(1.1);
-    apiPost({ fn: 'addDump', tag: document.getElementById('dumpTag').value, text: inp.value.trim() }); inp.value = '';
+    feedback(1.1, 16); apiPost({ fn: 'addDump', tag: document.getElementById('dumpTag').value, text: inp.value.trim() }); inp.value = '';
   }
 
   function switchTab(name) {
-    androidVib(10); playClickSound(0.95);
+    feedback(0.95, 10);
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
     document.querySelectorAll('[data-tab]').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
     document.getElementById('tab-' + name).classList.add('active');
@@ -1011,14 +1077,14 @@
 
   function updateTimerUI() { document.getElementById('timerDisplay').textContent = `${String(Math.floor(timerSec / 60)).padStart(2, '0')}:${String(timerSec % 60).padStart(2, '0')}`; }
   function setTimer(mins, el) {
-    androidVib(12); playClickSound(1.0); clearInterval(timerInterval); timerInterval = null;
+    feedback(1.0, 12); clearInterval(timerInterval); timerInterval = null;
     targetMins = mins; timerSec = mins * 60; updateTimerUI();
     ['m15', 'm25', 'm45'].forEach(id => document.getElementById(id).classList.remove('selected'));
     if (el) el.classList.add('selected');
     document.getElementById('timerBtn').textContent = 'Mulai Sprint';
   }
   function toggleTimer() {
-    androidVib(18); playClickSound(1.15);
+    feedback(1.15, 18);
     const btn = document.getElementById('timerBtn');
     if (timerInterval) { clearInterval(timerInterval); timerInterval = null; btn.textContent = 'Lanjutkan'; }
     else {
@@ -1026,7 +1092,7 @@
       timerInterval = setInterval(() => {
         if (timerSec > 0) { timerSec--; updateTimerUI(); }
         else {
-          clearInterval(timerInterval); timerInterval = null; androidVib([100, 60, 100]); playClickSound(1.35);
+          clearInterval(timerInterval); timerInterval = null; feedback(1.35, 80);
           btn.textContent = 'Selesai (+Grit)'; apiPost({ fn: 'logSprint', mins: targetMins });
         }
       }, 1000);
@@ -1035,11 +1101,11 @@
   function resetTimer() { setTimer(targetMins, document.getElementById('m' + targetMins)); }
 
   function triggerPause() {
-    androidVib(30); playClickSound(0.85);
+    feedback(0.85, 30);
     const btn = document.getElementById('pauseBtn');
     btn.textContent = 'Tarik napas... (2)';
     setTimeout(() => { btn.textContent = 'Tahan sebentar... (1)'; }, 1000);
-    setTimeout(() => { androidVib(18); playClickSound(1.15); btn.textContent = 'Silakan bicara dengan tenang'; }, 2000);
+    setTimeout(() => { feedback(1.15, 18); btn.textContent = 'Silakan bicara dengan tenang'; }, 2000);
     setTimeout(() => { btn.textContent = 'Jeda 2 Detik + Tarik Napas Sebelum Bicara'; }, 4500);
   }
 
@@ -1053,10 +1119,10 @@
     const phases = ['Tarik Napas', 'Tahan', 'Hembuskan', 'Tahan'];
     let step = 0, sec = 4;
     btn.textContent = 'Hentikan'; document.getElementById('breathPhase').textContent = phases[0]; document.getElementById('breathCount').textContent = sec;
-    androidVib(18); playClickSound(0.9);
+    feedback(0.9, 18);
     breathInterval = setInterval(() => {
       sec--;
-      if (sec === 0) { step = (step + 1) % 4; sec = 4; androidVib(18); playClickSound(0.9); document.getElementById('breathPhase').textContent = phases[step]; }
+      if (sec === 0) { step = (step + 1) % 4; sec = 4; feedback(0.9, 18); document.getElementById('breathPhase').textContent = phases[step]; }
       document.getElementById('breathCount').textContent = sec;
     }, 1000);
   }
@@ -1075,35 +1141,52 @@
     }
   }
 
-  // Direct Label Overlay Fidgets for 100% iOS Taptic Engine
-  const pool = document.getElementById('hapticSwitchPool');
+  // === IN-PLACE iOS SWITCH HIT-TARGET FIDGETS (100% TAPTIC + ZERO-DELAY AUDIO) ===
   const grid = document.getElementById('bubbleGrid');
   for (let i = 0; i < 16; i++) {
-    const sw = document.createElement('input'); sw.type = 'checkbox'; sw.setAttribute('switch', ''); sw.id = 'sw-bub-' + i; sw.className = 'sr-switch'; pool.appendChild(sw);
-    const lbl = document.createElement('label'); lbl.setAttribute('for', sw.id); lbl.className = 'bubble-label';
-    lbl.onclick = () => { const p = !lbl.classList.contains('popped'); androidVib(18); playClickSound(p ? 1.25 : 0.88); lbl.classList.toggle('popped'); };
-    grid.appendChild(lbl);
+    const wrap = document.createElement('div');
+    wrap.className = 'bubble-wrap';
+    const sw = document.createElement('input');
+    sw.type = 'checkbox';
+    sw.setAttribute('switch', '');
+    sw.className = 'native-hit-switch';
+    sw.onpointerdown = () => {
+      const p = !wrap.classList.contains('popped');
+      feedback(p ? 1.25 : 0.88, 18);
+      wrap.classList.toggle('popped');
+    };
+    wrap.appendChild(sw);
+    grid.appendChild(wrap);
   }
 
   const detentTrack = document.getElementById('detentTrack');
   for (let i = 1; i <= 7; i++) {
-    const sw = document.createElement('input'); sw.type = 'checkbox'; sw.setAttribute('switch', ''); sw.id = 'sw-det-' + i; sw.className = 'sr-switch'; pool.appendChild(sw);
-    const lbl = document.createElement('label'); lbl.setAttribute('for', sw.id); lbl.className = 'detent-label' + (i <= 4 ? ' active' : '');
-    lbl.onclick = () => {
-      androidVib(22); playClickSound(0.75 + i * 0.08);
+    const wrap = document.createElement('div');
+    wrap.className = 'detent-wrap' + (i <= 4 ? ' active' : '');
+    const sw = document.createElement('input');
+    sw.type = 'checkbox';
+    sw.setAttribute('switch', '');
+    sw.className = 'native-hit-switch';
+    sw.onpointerdown = () => {
+      feedback(0.75 + i * 0.08, 22);
       document.getElementById('detentVal').textContent = `Level ${i}/7`;
       Array.from(detentTrack.children).forEach((el, idx) => el.classList.toggle('active', idx < i));
     };
-    detentTrack.appendChild(lbl);
+    wrap.appendChild(sw);
+    detentTrack.appendChild(wrap);
   }
 
-  function onPulseTap() { androidVib(26); playClickSound(0.8 + (tapTotal % 5) * 0.07); tapTotal++; document.getElementById('tapCount').textContent = `${tapTotal} ketukan`; }
+  document.getElementById('pulseSwitchInput').onpointerdown = () => {
+    feedback(0.8 + (tapTotal % 5) * 0.07, 26);
+    tapTotal++;
+    document.getElementById('tapCount').textContent = `${tapTotal} ketukan`;
+  };
 
-  // Boot from cache first, then sync with Google Calendar & Sheets
   try {
     const cached = JSON.parse(localStorage.getItem(STORAGE_KEY));
     if (cached) state = Object.assign(state, cached);
   } catch (e) {}
+  populateCalendarDropdowns();
   renderAll();
   apiGet(selectedDate);
 </script>
