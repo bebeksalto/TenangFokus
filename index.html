@@ -177,12 +177,40 @@
     -webkit-appearance: auto; appearance: auto; transform: scale(3.5);
   }
 
-  .detent-track { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin: 12px 0; }
-  .detent-wrap {
-    position: relative; height: 48px; border-radius: 12px; background: var(--surface-2);
-    border: 1px solid var(--border); overflow: hidden;
+  /* TACTILE MAGNETIC SLIDER (DRAGGABLE + SNAP DETENTS) */
+  .mag-slider {
+    position: relative; width: 100%; height: 54px; border-radius: 16px;
+    background: var(--surface-2); border: 1px solid var(--border);
+    margin: 10px 0 4px; overflow: hidden; touch-action: none; user-select: none;
   }
-  .detent-wrap.active { background: linear-gradient(135deg, var(--rose), var(--amber)); border-color: transparent; }
+  .mag-fill {
+    position: absolute; top: 0; bottom: 0; left: 0; width: 50%;
+    background: linear-gradient(90deg, rgba(251,113,133,.28), rgba(251,191,36,.32));
+    pointer-events: none; transition: width .08s ease-out;
+  }
+  .mag-ticks {
+    position: absolute; inset: 0; display: flex; justify-content: space-between;
+    align-items: center; padding: 0 24px; pointer-events: none;
+  }
+  .mag-tick {
+    width: 6px; height: 6px; border-radius: 50%; background: var(--border);
+    transition: background .12s, transform .12s;
+  }
+  .mag-tick.passed { background: var(--amber); transform: scale(1.25); }
+  .mag-thumb {
+    position: absolute; top: 6px; bottom: 6px; width: 38px; border-radius: 12px;
+    background: linear-gradient(135deg, var(--rose), var(--amber));
+    box-shadow: 0 4px 14px rgba(0,0,0,.45);
+    display: flex; align-items: center; justify-content: center; gap: 3px;
+    transform: translateX(-50%); left: 50%; pointer-events: none;
+    transition: left .08s ease-out, transform .1s;
+  }
+  .mag-thumb::before, .mag-thumb::after {
+    content: ""; width: 2px; height: 14px; border-radius: 2px; background: rgba(11,15,23,.55);
+  }
+  .mag-slider.dragging .mag-fill,
+  .mag-slider.dragging .mag-thumb { transition: none; }
+  .mag-slider.dragging .mag-thumb { transform: translateX(-50%) scale(1.06); }
 
   .pulse-wrap {
     position: relative; width: 100%; height: 104px; border-radius: 18px;
