@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="TenangFokus">
 <meta name="theme-color" content="#0b0f17">
-<title>TenangFokus v.2.5 by rudymuda</title>
+<title>TenangFokus v.2.6 by rudymuda</title>
 <style>
   :root {
     --bg: #0b0f17; --surface: #131a26; --surface-2: #1c2536; --border: #273349;
@@ -23,16 +23,9 @@
   body {
     margin: 0; background: var(--bg); color: var(--text);
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
-    font-size: 14px; line-height: 1.5;
-    padding-top: env(safe-area-inset-top);
+    font-size: 14px; line-height: 1.5; padding-top: env(safe-area-inset-top);
   }
-
-  /* Native iOS 17.4+ Switch Inputs (Offscreen but rendered so Safari triggers Taptic Engine on direct label tap) */
-  .sr-switch {
-    position: fixed; left: -120px; top: 0; width: 48px; height: 28px;
-    opacity: 0.01; pointer-events: none;
-  }
-
+  .sr-switch { position: fixed; left: -120px; top: 0; width: 48px; height: 28px; opacity: 0.01; pointer-events: none; }
   .app-shell { min-height: 100vh; padding: 14px 16px 96px; }
   .sidebar { display: none; }
   .mobile-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
@@ -41,8 +34,9 @@
   .brand-icon { width: 32px; height: 32px; border-radius: 10px; background: linear-gradient(135deg, var(--sky), var(--indigo)); display: flex; align-items: center; justify-content: center; color: #09111e; flex-shrink: 0; }
   .status-pill { background: var(--surface); border: 1px solid var(--border); color: var(--muted); border-radius: 999px; padding: 6px 11px; font-size: 11px; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; cursor: pointer; user-select: none; }
   .status-pill.active { border-color: var(--emerald); color: var(--emerald); background: var(--emerald-bg); }
-  .status-pill.noise-on { border-color: var(--sky); color: var(--sky); background: var(--sky-bg); }
-  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--emerald); }
+  .status-pill.warn { border-color: var(--amber); color: var(--amber); background: var(--amber-bg); }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--amber); }
+  .status-pill.active .dot { background: var(--emerald); }
 
   .view { display: none; }
   .view.active { display: block; }
@@ -105,6 +99,11 @@
   input:focus, select:focus, textarea:focus { border-color: var(--indigo); background: var(--bg); }
   textarea { resize: vertical; min-height: 82px; }
 
+  /* Modal Sync Settings */
+  .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.72); backdrop-filter: blur(6px); display: none; align-items: center; justify-content: center; padding: 16px; z-index: 50; }
+  .modal-backdrop.open { display: flex; }
+  .modal-box { background: var(--surface); border: 1px solid var(--border); border-radius: 22px; padding: 20px; width: 100%; max-width: 440px; }
+
   .ambient-box { background: var(--surface-2); border-radius: 16px; padding: 12px; margin-top: 12px; border: 1px solid var(--border); }
   .vol-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 6px; background: var(--border); border-radius: 999px; padding: 0; border: none; }
   .vol-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 20px; height: 20px; border-radius: 50%; background: var(--sky); cursor: pointer; }
@@ -161,40 +160,43 @@
   .note-title { font-weight: 700; color: var(--text); margin-bottom: 4px; }
   .note-snippet { font-size: 12px; color: var(--muted); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 
-  /* DIRECT LABEL OVERLAY FIDGETS FOR 100% iOS SAFARI TAPTIC ENGINE */
   .bubbles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 8px; }
-  .bubble-label {
-    display: block; aspect-ratio: 1; border-radius: 50%; background: var(--surface-2);
-    border: 2px solid var(--border); transition: transform .08s, background .1s, border-color .1s;
-    cursor: pointer; user-select: none;
-  }
+  .bubble-label { display: block; aspect-ratio: 1; border-radius: 50%; background: var(--surface-2); border: 2px solid var(--border); transition: transform .08s, background .1s, border-color .1s; cursor: pointer; user-select: none; }
   .bubble-label.popped { background: var(--rose-bg); border-color: var(--rose); transform: scale(.9); }
 
   .detent-track { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin: 12px 0; }
-  .detent-label {
-    display: block; height: 46px; border-radius: 12px; background: var(--surface-2);
-    border: 1px solid var(--border); cursor: pointer; user-select: none; transition: transform .08s;
-  }
+  .detent-label { display: block; height: 46px; border-radius: 12px; background: var(--surface-2); border: 1px solid var(--border); cursor: pointer; user-select: none; }
   .detent-label.active { background: linear-gradient(135deg, var(--rose), var(--amber)); border-color: transparent; }
 
-  .pulse-pad-label {
-    width: 100%; height: 104px; border-radius: 18px;
-    background: radial-gradient(circle, var(--rose-bg), var(--surface-2));
-    border: 2px solid rgba(251,113,133,.45);
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    color: var(--rose); font-weight: 700; cursor: pointer; user-select: none;
-    transition: transform .08s, box-shadow .12s;
-  }
-  .pulse-pad-label:active { transform: scale(.96); box-shadow: 0 0 24px rgba(251,113,133,.35); }
+  .pulse-pad-label { width: 100%; height: 104px; border-radius: 18px; background: radial-gradient(circle, var(--rose-bg), var(--surface-2)); border: 2px solid rgba(251,113,133,.45); display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--rose); font-weight: 700; cursor: pointer; user-select: none; }
+  .pulse-pad-label:active { transform: scale(.96); }
 </style>
 </head>
 <body>
 
-<!-- Dedicated Native iOS 17.4+ Switch Elements (Directly targeted by <label for="...">) -->
 <div id="hapticSwitchPool" aria-hidden="true">
   <input type="checkbox" switch id="sw-nav" class="sr-switch">
   <input type="checkbox" switch id="sw-pulse" class="sr-switch">
   <input type="checkbox" switch id="sw-check" class="sr-switch">
+</div>
+
+<!-- MODAL KONEKSI GOOGLE CALENDAR & SHEETS -->
+<div class="modal-backdrop" id="syncModal">
+  <div class="modal-box">
+    <div class="card-title">
+      <span>KONEKSI GOOGLE CALENDAR & SHEETS</span>
+      <button class="chip" onclick="closeSyncModal()">Tutup</button>
+    </div>
+    <p style="font-size:12px;color:var(--muted);margin:0 0 12px">
+      Tempel <strong>Web app URL</strong> dari Google Apps Script (<code style="color:var(--sky)">https://script.google.com/macros/s/.../exec</code>) agar jadwal Google Calendar dan catatanmu tersinkron otomatis.
+    </p>
+    <input id="gasUrlInput" placeholder="https://script.google.com/macros/s/.../exec" style="margin-bottom:10px">
+    <div class="row">
+      <button class="btn-indigo" style="flex:2" onclick="saveGasUrl()">Hubungkan & Sync</button>
+      <button style="flex:1" onclick="syncNow()">Refresh</button>
+    </div>
+    <div id="syncModalMsg" style="font-size:11px;color:var(--emerald);margin-top:8px"></div>
+  </div>
 </div>
 
 <div class="app-shell">
@@ -205,13 +207,13 @@
         <div class="brand-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg></div>
         <div>
           TenangFokus
-          <span class="brand-sub">v.2.5 by rudymuda</span>
+          <span class="brand-sub">v.2.6 by rudymuda</span>
         </div>
       </div>
       <div class="side-menu">
         <button class="side-btn active" data-tab="cal" data-color="indigo" onclick="switchTab('cal')">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-          Kalender & Jadwal
+          Google Calendar
         </button>
         <button class="side-btn" data-tab="focus" data-color="sky" onclick="switchTab('focus')">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
@@ -236,10 +238,12 @@
       </div>
     </div>
     <div>
-      <button style="width:100%;margin-bottom:8px;font-size:12px;min-height:38px" onclick="exportBackup()">Backup Data JSON</button>
-      <div class="status-pill" style="width:100%;justify-content:center" id="wakeBtnDesk" onclick="toggleWakeLock()">
+      <div class="status-pill" style="width:100%;justify-content:center;margin-bottom:8px" id="syncBadgeDesk" onclick="openSyncModal()">
         <span class="dot"></span>
-        <span id="wakeTextDesk">Offline Ready</span>
+        <span id="syncTextDesk">Hubungkan Google</span>
+      </div>
+      <div class="status-pill" style="width:100%;justify-content:center" id="wakeBtnDesk" onclick="toggleWakeLock()">
+        <span id="wakeTextDesk">Layar: Auto</span>
       </div>
     </div>
   </aside>
@@ -251,19 +255,21 @@
         <div class="brand-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg></div>
         <div>
           TenangFokus
-          <span class="brand-sub">v.2.5 by rudymuda</span>
+          <span class="brand-sub">v.2.6 by rudymuda</span>
         </div>
       </div>
       <div class="row">
-        <div class="status-pill" id="noiseBtnMob" onclick="toggleAmbient()">Suara</div>
-        <div class="status-pill" id="wakeBtnMob" onclick="toggleWakeLock()">
+        <div class="status-pill" id="syncBadgeMob" onclick="openSyncModal()">
           <span class="dot"></span>
+          <span id="syncTextMob">Connect</span>
+        </div>
+        <div class="status-pill" id="wakeBtnMob" onclick="toggleWakeLock()">
           <span id="wakeTextMob">Layar</span>
         </div>
       </div>
     </header>
 
-    <!-- TAB 1: KALENDER (MONTH / WEEK / DAY + ICS EXPORT) -->
+    <!-- TAB 1: GOOGLE CALENDAR -->
     <div id="tab-cal" class="view active">
       <div class="desktop-grid-cal">
         <div>
@@ -304,19 +310,15 @@
         <!-- FORM TAMBAH / EDIT JADWAL -->
         <div class="card accent-sky" id="calFormCard">
           <div class="card-title">
-            <span id="calFormHeader">TAMBAH JADWAL & AGENDA</span>
+            <span id="calFormHeader">TAMBAH JADWAL GOOGLE CALENDAR</span>
             <button class="chip" id="cancelEditBtn" style="display:none" onclick="resetCalForm()">Batal Edit</button>
           </div>
           <div style="display:flex;flex-direction:column;gap:10px">
             <input type="hidden" id="evId">
+            <input type="hidden" id="evOrigCalId">
             <input id="evTitle" placeholder="Judul kegiatan / kuliah / deadline...">
             <div class="row">
-              <select id="evCategory">
-                <option value="#818cf8">Kuliah / Kerja</option>
-                <option value="#38bdf8">Fokus / Proyek</option>
-                <option value="#fbbf24">Deadline Penting</option>
-                <option value="#34d399">Pribadi / Kesehatan</option>
-              </select>
+              <select id="evCalSelect"><option value="">Kalender Utama (Default)</option></select>
               <select id="evRepeat" style="flex:0 0 135px">
                 <option value="NONE">Sekali saja</option>
                 <option value="DAILY">Tiap Hari</option>
@@ -338,13 +340,13 @@
             </div>
             <input id="evLoc" placeholder="Lokasi atau link meeting (opsional)">
             <textarea id="evDesc" placeholder="Catatan jadwal (opsional)" style="min-height:60px"></textarea>
-            <button class="btn-indigo" style="width:100%" id="evSubmitBtn" onclick="submitCalendarEvent()">Simpan Jadwal</button>
+            <button class="btn-indigo" style="width:100%" id="evSubmitBtn" onclick="submitCalendarEvent()">Simpan ke Google Calendar</button>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- TAB 2: FOKUS, GRIT, AMBIENT SOUND & TASK -->
+    <!-- TAB 2: FOKUS, GRIT & TASK -->
     <div id="tab-focus" class="view">
       <div class="desktop-grid-2">
         <div>
@@ -498,7 +500,7 @@
       </div>
     </div>
 
-    <!-- TAB 6: FIDGET (DIRECT LABEL OVERLAY FOR 100% iOS TAPTIC ENGINE) -->
+    <!-- TAB 6: FIDGET (100% DIRECT iOS TAPTIC ENGINE) -->
     <div id="tab-fidget" class="view">
       <div class="desktop-grid-3">
         <div class="card accent-sky">
@@ -512,7 +514,7 @@
 
         <div class="card accent-rose">
           <div class="card-title">
-            <span>TACTILE BUBBLE GRID (TAPTIC)</span>
+            <span>TACTILE BUBBLE GRID</span>
             <button class="chip selected" id="soundToggleChip" onclick="toggleClickSound()">Klik: On</button>
           </div>
           <div class="bubbles" id="bubbleGrid"></div>
@@ -534,10 +536,9 @@
       </div>
     </div>
 
-    <div class="mobile-footer-credit">TenangFokus v.2.5 by rudymuda</div>
+    <div class="mobile-footer-credit">TenangFokus v.2.6 by rudymuda</div>
   </main>
 
-  <!-- MOBILE BOTTOM NAV USING DIRECT <label for="sw-nav"> FOR TAPTIC FEEDBACK -->
   <nav class="bottom-nav">
     <label for="sw-nav" class="active" data-tab="cal" data-color="indigo" onclick="switchTab('cal')">
       <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
@@ -567,53 +568,100 @@
 </div>
 
 <script>
-  const STORAGE_KEY = 'tenangfokus_v25_rudymuda';
+  const STORAGE_KEY = 'tenangfokus_v26_rudymuda';
+  const GAS_URL_KEY = 'tenangfokus_gas_url';
+  let gasUrl = localStorage.getItem(GAS_URL_KEY) || '';
+
   let state = {
-    events: [],
-    tasks: [],
-    habits: [
-      { id: 'h1', name: 'Kunci 1 tugas utama hari ini', streak: 0, lastDone: '' },
-      { id: 'h2', name: 'Minum air & peregangan rutin', streak: 0, lastDone: '' },
-      { id: 'h3', name: 'Catat pengeluaran harian', streak: 0, lastDone: '' },
-      { id: 'h4', name: 'Brain dump 3 menit sebelum tidur', streak: 0, lastDone: '' }
-    ],
-    habitLogs: {},
-    finance: [],
-    sprints: {},
-    notes: [],
-    dumps: []
+    todayKey: '', tasks: [], habits: [], habit7Days: [], calendars: [], calEvents: [],
+    finance: { income: 0, expense: 0, balance: 0, byCategory: [], items: [] },
+    grit: { mins: 0, sessions: 0, history7Days: [] }, notes: [], dumps: []
   };
 
-  function loadStorage() {
-    try {
-      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
-      if (saved) state = Object.assign(state, saved);
-    } catch (e) {}
-  }
-
-  function saveStorage() {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
-  }
-
-  function dateKeyOffset(daysAgo = 0) {
-    const d = new Date(Date.now() - daysAgo * 86400000);
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-  }
-
-  function dayLabelOffset(daysAgo) {
-    if (daysAgo === 0) return 'Hari ini';
-    const d = new Date(Date.now() - daysAgo * 86400000);
-    const days = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
-    return `${days[d.getDay()]} ${String(d.getDate()).padStart(2, '0')}`;
-  }
-
   let calMode = 'month';
-  let selectedDate = dateKeyOffset(0);
+  let selectedDate = new Date().toISOString().slice(0, 10);
+  let loadedMonth = selectedDate.slice(0, 7);
   let targetMins = 15, timerSec = 900, timerInterval = null, breathInterval = null, wakeLock = null, tapTotal = 0;
 
-  // === ZERO-LATENCY WEB AUDIO ENGINE + ANDROID FALLBACK HAPTICS ===
-  let audioCtx = null, clickBuffer = null;
-  let ambientSource = null, ambientFilter = null, ambientGain = null;
+  // === CLOUD SYNC ENGINE (GITHUB PAGES <-> GOOGLE APPS SCRIPT) ===
+  function updateSyncBadges(statusText, isConnected) {
+    ['syncBadgeDesk', 'syncBadgeMob'].forEach(id => {
+      const el = document.getElementById(id);
+      el.classList.toggle('active', isConnected);
+      el.classList.toggle('warn', !isConnected);
+    });
+    document.getElementById('syncTextDesk').textContent = statusText;
+    document.getElementById('syncTextMob').textContent = isConnected ? 'Synced' : 'Connect';
+  }
+
+  function openSyncModal() {
+    document.getElementById('gasUrlInput').value = gasUrl;
+    document.getElementById('syncModalMsg').textContent = gasUrl ? 'Terhubung ke Google Apps Script.' : '';
+    document.getElementById('syncModal').classList.add('open');
+  }
+  function closeSyncModal() { document.getElementById('syncModal').classList.remove('open'); }
+
+  function saveGasUrl() {
+    const val = document.getElementById('gasUrlInput').value.trim();
+    gasUrl = val;
+    localStorage.setItem(GAS_URL_KEY, val);
+    if (val) {
+      document.getElementById('syncModalMsg').textContent = 'Menghubungkan ke Google Calendar & Sheets...';
+      syncNow(true);
+    } else {
+      updateSyncBadges('Mode Lokal', false);
+    }
+  }
+
+  async function apiGet(anchor) {
+    if (!gasUrl) { updateSyncBadges('Hubungkan Google', false); return; }
+    updateSyncBadges('Syncing...', true);
+    try {
+      const sep = gasUrl.includes('?') ? '&' : '?';
+      const res = await fetch(`${gasUrl}${sep}action=getAllData&anchor=${encodeURIComponent(anchor || selectedDate)}`);
+      const data = await res.json();
+      if (data && !data.error) {
+        state = data;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        renderAll();
+        updateSyncBadges('Google Synced', true);
+        document.getElementById('syncModalMsg').textContent = 'Berhasil tersinkron dengan Google Calendar & Sheets!';
+      }
+    } catch (e) {
+      updateSyncBadges('Gagal Sync', false);
+      document.getElementById('syncModalMsg').textContent = 'Gagal terhubung. Pastikan akses Web App diatur ke "Anyone".';
+    }
+  }
+
+  async function apiPost(payloadObj) {
+    if (!gasUrl) {
+      alert('Klik tombol "Connect" di atas dan masukkan URL Web App Google Apps Script dulu ya!');
+      openSyncModal();
+      return;
+    }
+    updateSyncBadges('Menyimpan...', true);
+    try {
+      const res = await fetch(gasUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payloadObj)
+      });
+      const data = await res.json();
+      if (data && !data.error) {
+        state = data;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        renderAll();
+        updateSyncBadges('Google Synced', true);
+      }
+    } catch (e) {
+      updateSyncBadges('Error Sync', false);
+    }
+  }
+
+  function syncNow(fromModal) { apiGet(selectedDate).then(() => { if (fromModal) setTimeout(closeSyncModal, 700); }); }
+
+  // === AUDIO & HAPTIC ENGINE ===
+  let audioCtx = null, clickBuffer = null, ambientSource = null, ambientFilter = null, ambientGain = null;
   let isAmbientOn = false, ambientType = 'brown', ambientVolume = 0.40, clickSoundOn = true;
 
   function initAudioEngine() {
@@ -626,13 +674,11 @@
       const data = clickBuffer.getChannelData(0);
       for (let i = 0; i < len; i++) {
         const t = i / audioCtx.sampleRate;
-        const env = Math.exp(-t * 240);
-        data[i] = (Math.sin(2 * Math.PI * 820 * t) * 0.65 + (Math.random() * 2 - 1) * 0.35) * env;
+        data[i] = (Math.sin(2 * Math.PI * 820 * t) * 0.65 + (Math.random() * 2 - 1) * 0.35) * Math.exp(-t * 240);
       }
     }
     if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
   }
-
   document.addEventListener('pointerdown', initAudioEngine, { once: true, passive: true });
 
   function playClickSound(rate = 1.0) {
@@ -640,19 +686,11 @@
     initAudioEngine();
     if (!audioCtx || !clickBuffer) return;
     const src = audioCtx.createBufferSource();
-    src.buffer = clickBuffer;
-    src.playbackRate.value = rate;
-    const g = audioCtx.createGain();
-    g.gain.value = 0.55;
-    src.connect(g);
-    g.connect(audioCtx.destination);
-    src.start(0);
+    src.buffer = clickBuffer; src.playbackRate.value = rate;
+    const g = audioCtx.createGain(); g.gain.value = 0.55;
+    src.connect(g); g.connect(audioCtx.destination); src.start(0);
   }
-
-  function androidVib(ms = 16) {
-    if (navigator.vibrate) navigator.vibrate(ms);
-  }
-
+  function androidVib(ms = 16) { if (navigator.vibrate) navigator.vibrate(ms); }
   function toggleClickSound() {
     clickSoundOn = !clickSoundOn;
     const chip = document.getElementById('soundToggleChip');
@@ -662,175 +700,102 @@
   }
 
   function buildAmbientNodes() {
-    stopAmbientNodes();
-    initAudioEngine();
-    const sr = audioCtx.sampleRate;
-    const bufferSize = 3 * sr;
-    const noiseBuffer = audioCtx.createBuffer(1, bufferSize, sr);
-    const out = noiseBuffer.getChannelData(0);
-
+    stopAmbientNodes(); initAudioEngine();
+    const sr = audioCtx.sampleRate, bufferSize = 3 * sr;
+    const noiseBuffer = audioCtx.createBuffer(1, bufferSize, sr), out = noiseBuffer.getChannelData(0);
     if (ambientType === 'brown') {
       let last = 0;
-      for (let i = 0; i < bufferSize; i++) {
-        const w = Math.random() * 2 - 1;
-        out[i] = (last + 0.02 * w) / 1.02;
-        last = out[i];
-        out[i] *= 3.4;
-      }
+      for (let i = 0; i < bufferSize; i++) { const w = Math.random() * 2 - 1; out[i] = (last + 0.02 * w) / 1.02; last = out[i]; out[i] *= 3.4; }
     } else if (ambientType === 'pink') {
-      let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+      let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
       for (let i = 0; i < bufferSize; i++) {
         const w = Math.random() * 2 - 1;
-        b0 = 0.99886 * b0 + w * 0.0555179;
-        b1 = 0.99332 * b1 + w * 0.0750759;
-        b2 = 0.96900 * b2 + w * 0.1538520;
-        b3 = 0.86650 * b3 + w * 0.3104856;
-        b4 = 0.55000 * b4 + w * 0.5329522;
-        b5 = -0.7616 * b5 - w * 0.0168980;
-        out[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + w * 0.5362) * 0.11;
-        b6 = w * 0.115926;
+        b0 = 0.99886*b0 + w*0.0555179; b1 = 0.99332*b1 + w*0.0750759; b2 = 0.96900*b2 + w*0.1538520;
+        b3 = 0.86650*b3 + w*0.3104856; b4 = 0.55000*b4 + w*0.5329522; b5 = -0.7616*b5 - w*0.0168980;
+        out[i] = (b0+b1+b2+b3+b4+b5+b6+w*0.5362)*0.11; b6 = w*0.115926;
       }
     } else {
-      let b0 = 0, b1 = 0, b2 = 0;
+      let b0=0,b1=0,b2=0;
       for (let i = 0; i < bufferSize; i++) {
-        const w = Math.random() * 2 - 1;
-        b0 = 0.997 * b0 + w * 0.04;
-        b1 = 0.985 * b1 + w * 0.08;
-        b2 = 0.920 * b2 + w * 0.15;
-        const drop = Math.random() < 0.0025 ? (Math.random() * 0.55) : 0;
-        out[i] = (b0 + b1 + b2) * 0.35 + drop * w;
+        const w = Math.random()*2 - 1;
+        b0 = 0.997*b0 + w*0.04; b1 = 0.985*b1 + w*0.08; b2 = 0.920*b2 + w*0.15;
+        out[i] = (b0+b1+b2)*0.35 + (Math.random() < 0.0025 ? Math.random()*0.55*w : 0);
       }
     }
-
-    ambientSource = audioCtx.createBufferSource();
-    ambientSource.buffer = noiseBuffer;
-    ambientSource.loop = true;
-
-    ambientFilter = audioCtx.createBiquadFilter();
-    ambientFilter.type = 'lowpass';
+    ambientSource = audioCtx.createBufferSource(); ambientSource.buffer = noiseBuffer; ambientSource.loop = true;
+    ambientFilter = audioCtx.createBiquadFilter(); ambientFilter.type = 'lowpass';
     ambientFilter.frequency.value = ambientType === 'rain' ? 1150 : (ambientType === 'pink' ? 1800 : 650);
-
     ambientGain = audioCtx.createGain();
     ambientGain.gain.setValueAtTime(0.001, audioCtx.currentTime);
     ambientGain.gain.linearRampToValueAtTime(ambientVolume * 0.45, audioCtx.currentTime + 0.15);
-
-    ambientSource.connect(ambientFilter);
-    ambientFilter.connect(ambientGain);
-    ambientGain.connect(audioCtx.destination);
+    ambientSource.connect(ambientFilter); ambientFilter.connect(ambientGain); ambientGain.connect(audioCtx.destination);
     ambientSource.start(0);
   }
-
-  function stopAmbientNodes() {
-    if (ambientSource) {
-      try { ambientSource.stop(); ambientSource.disconnect(); } catch (e) {}
-      ambientSource = null;
-    }
-  }
-
+  function stopAmbientNodes() { if (ambientSource) { try { ambientSource.stop(); ambientSource.disconnect(); } catch (e) {} ambientSource = null; } }
   function toggleAmbient() {
     isAmbientOn = !isAmbientOn;
-    if (isAmbientOn) buildAmbientNodes();
-    else stopAmbientNodes();
+    if (isAmbientOn) buildAmbientNodes(); else stopAmbientNodes();
     androidVib(14);
     const btn = document.getElementById('ambientToggleBtn');
-    btn.textContent = isAmbientOn ? 'On' : 'Off';
-    btn.classList.toggle('selected', isAmbientOn);
-    document.getElementById('noiseBtnMob').classList.toggle('noise-on', isAmbientOn);
+    btn.textContent = isAmbientOn ? 'On' : 'Off'; btn.classList.toggle('selected', isAmbientOn);
   }
-
   function selectAmbientType(type) {
     ambientType = type;
     ['brown', 'pink', 'rain'].forEach(t => document.getElementById('snd-' + t).classList.toggle('selected', t === type));
     androidVib(12); playClickSound(1.05);
     if (isAmbientOn) buildAmbientNodes();
   }
-
   function updateAmbientVolume(val) {
-    ambientVolume = Number(val) / 100;
-    document.getElementById('volLabel').textContent = val + '%';
+    ambientVolume = Number(val) / 100; document.getElementById('volLabel').textContent = val + '%';
     if (ambientGain && audioCtx) ambientGain.gain.setTargetAtTime(ambientVolume * 0.45, audioCtx.currentTime, 0.03);
   }
 
   function rupiah(n) { return 'Rp ' + Number(n || 0).toLocaleString('id-ID'); }
   function toKey(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
 
-  // === CALENDAR LOGIC (MONTH / WEEK / DAY + RECURRENCE + .ICS DOWNLOAD) ===
-  function expandEventsForRange(startKey, endKey) {
-    const out = [];
-    const startDt = new Date(startKey + 'T00:00:00');
-    const endDt = new Date(endKey + 'T23:59:59');
-
-    state.events.forEach(ev => {
-      const baseDt = new Date(ev.date + 'T12:00:00');
-      if (isNaN(baseDt.getTime())) return;
-      if (!ev.repeat || ev.repeat === 'NONE') {
-        if (ev.date >= startKey && ev.date <= endKey) out.push(ev);
-      } else {
-        const cur = new Date(baseDt);
-        let guard = 0;
-        while (cur <= endDt && guard < 120) {
-          const k = toKey(cur);
-          if (k >= startKey) out.push(Object.assign({}, ev, { dateKey: k }));
-          if (ev.repeat === 'DAILY') cur.setDate(cur.getDate() + 1);
-          else if (ev.repeat === 'WEEKLY') cur.setDate(cur.getDate() + 7);
-          else if (ev.repeat === 'MONTHLY') cur.setMonth(cur.getMonth() + 1);
-          guard++;
-        }
-      }
-    });
-    return out.sort((a, b) => ((a.dateKey || a.date) + (a.startTime || '')).localeCompare((b.dateKey || b.date) + (b.startTime || '')));
-  }
-
+  // === RENDER GOOGLE CALENDAR ===
   function renderCalendar() {
-    const todayKey = dateKeyOffset(0);
     const base = new Date(selectedDate + 'T12:00:00');
     const months = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
     const daysFull = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
     const daysShort = ['Min','Sen','Sel','Rab','Kam','Jum','Sab'];
 
+    const sel = document.getElementById('evCalSelect');
+    if (state.calendars && state.calendars.length > 0 && sel.dataset.loaded !== '1') {
+      sel.innerHTML = state.calendars.filter(c => c.canEdit).map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+      sel.dataset.loaded = '1';
+    }
     if (!document.getElementById('evDate').value) document.getElementById('evDate').value = selectedDate;
 
-    const rangeStart = toKey(new Date(base.getFullYear(), base.getMonth() - 1, 1));
-    const rangeEnd = toKey(new Date(base.getFullYear(), base.getMonth() + 2, 0));
-    const expanded = expandEventsForRange(rangeStart, rangeEnd);
     const evMap = {};
-    expanded.forEach(ev => {
-      const k = ev.dateKey || ev.date;
-      if (!evMap[k]) evMap[k] = [];
-      evMap[k].push(ev);
+    (state.calEvents || []).forEach(ev => {
+      if (!evMap[ev.dateKey]) evMap[ev.dateKey] = [];
+      evMap[ev.dateKey].push(ev);
     });
 
     if (calMode === 'month') {
       document.getElementById('calPeriodTitle').textContent = `${months[base.getMonth()]} ${base.getFullYear()}`;
       const firstDay = new Date(base.getFullYear(), base.getMonth(), 1);
-      const startGrid = new Date(firstDay);
-      startGrid.setDate(1 - firstDay.getDay());
-
+      const startGrid = new Date(firstDay); startGrid.setDate(1 - firstDay.getDay());
       let html = '';
       for (let i = 0; i < 42; i++) {
-        const cur = new Date(startGrid);
-        cur.setDate(startGrid.getDate() + i);
+        const cur = new Date(startGrid); cur.setDate(startGrid.getDate() + i);
         const k = toKey(cur);
-        const dots = (evMap[k] || []).slice(0, 4).map(e => `<span class="cal-dot" style="background:${e.color || '#818cf8'}"></span>`).join('');
-        html += `<div class="cal-cell ${cur.getMonth() !== base.getMonth() ? 'other-month' : ''} ${k === todayKey ? 'today' : ''} ${k === selectedDate ? 'selected' : ''}" onclick="selectCalDate('${k}')">
+        const dots = (evMap[k] || []).slice(0, 4).map(e => `<span class="cal-dot" style="background:${e.color}"></span>`).join('');
+        html += `<div class="cal-cell ${cur.getMonth() !== base.getMonth() ? 'other-month' : ''} ${k === state.todayKey ? 'today' : ''} ${k === selectedDate ? 'selected' : ''}" onclick="selectCalDate('${k}')">
           <div class="cal-day-num">${cur.getDate()}</div>
           <div class="cal-dots">${dots}</div>
         </div>`;
       }
       document.getElementById('calMonthGrid').innerHTML = html;
     } else if (calMode === 'week') {
-      const startW = new Date(base);
-      startW.setDate(base.getDate() - base.getDay());
-      const endW = new Date(startW);
-      endW.setDate(startW.getDate() + 6);
+      const startW = new Date(base); startW.setDate(base.getDate() - base.getDay());
+      const endW = new Date(startW); endW.setDate(startW.getDate() + 6);
       document.getElementById('calPeriodTitle').textContent = `${startW.getDate()} - ${endW.getDate()} ${months[endW.getMonth()].slice(0,3)}`;
-
       let wHtml = '';
       for (let i = 0; i < 7; i++) {
-        const cur = new Date(startW);
-        cur.setDate(startW.getDate() + i);
-        const k = toKey(cur);
-        const cnt = (evMap[k] || []).length;
+        const cur = new Date(startW); cur.setDate(startW.getDate() + i);
+        const k = toKey(cur), cnt = (evMap[k] || []).length;
         wHtml += `<div class="week-day-card ${k === selectedDate ? 'selected' : ''}" onclick="selectCalDate('${k}')">
           <div style="font-size:10px;color:var(--muted)">${daysShort[i]}</div>
           <div style="font-weight:700;font-size:15px;margin:2px 0">${cur.getDate()}</div>
@@ -845,44 +810,22 @@
     const dayEvs = evMap[selectedDate] || [];
     document.getElementById('selectedDateLabel').textContent = `AGENDA ${selectedDate}`;
     document.getElementById('eventCountBadge').textContent = `${dayEvs.length} acara`;
-    document.getElementById('dayAgendaList').innerHTML = dayEvs.map(ev => `
-      <div class="event-card" style="border-left-color:${ev.color || '#818cf8'}">
+    document.getElementById('dayAgendaList').innerHTML = dayEvs.map((ev, idx) => `
+      <div class="event-card" style="border-left-color:${ev.color}">
         <div style="flex:1;min-width:0">
-          <div style="font-size:11px;color:${ev.color || '#818cf8'};font-weight:700">${ev.isAllDay ? 'Seharian' : ev.startTime + ' - ' + ev.endTime}${ev.repeat && ev.repeat !== 'NONE' ? ' · Berulang' : ''}</div>
+          <div style="font-size:11px;color:${ev.color};font-weight:700">${ev.isAllDay ? 'Seharian' : ev.startStr + ' - ' + ev.endStr} · ${ev.calName}</div>
           <div style="font-weight:700;font-size:14px">${ev.title}</div>
           ${ev.location ? `<div style="font-size:11px;color:var(--muted)">Lokasi: ${ev.location}</div>` : ''}
         </div>
-        <div class="row" style="gap:4px">
-          <button class="icon-action" title="Tambah ke Apple/Google Calendar (.ics)" onclick="downloadICS('${ev.id}')">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          </button>
-          <button class="icon-action" title="Edit" onclick="editCalendarEvent('${ev.id}')">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-          </button>
-          <button class="icon-action" title="Hapus" onclick="deleteCalendarEvent('${ev.id}')">✕</button>
-        </div>
+        ${ev.canEdit ? `
+          <div class="row" style="gap:4px">
+            <button class="icon-action" onclick="editCalendarEvent('${selectedDate}', ${idx})">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
+            <button class="icon-action" onclick="doDeleteCal('${ev.calId}','${ev.id}')">✕</button>
+          </div>` : ''}
       </div>
-    `).join('') || '<div style="color:var(--muted);font-size:13px">Tidak ada agenda terjadwal pada tanggal ini.</div>';
-  }
-
-  function downloadICS(id) {
-    const ev = state.events.find(x => x.id === id);
-    if (!ev) return;
-    androidVib(14); playClickSound(1.1);
-    const cleanDate = ev.date.replace(/-/g, '');
-    const dtStart = ev.isAllDay ? `DTSTART;VALUE=DATE:${cleanDate}` : `DTSTART:${cleanDate}T${(ev.startTime || '09:00').replace(':','')}00`;
-    const dtEnd = ev.isAllDay ? `DTEND;VALUE=DATE:${cleanDate}` : `DTEND:${cleanDate}T${(ev.endTime || '10:00').replace(':','')}00`;
-    const ics = [
-      'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//TenangFokus//rudymuda//ID',
-      'BEGIN:VEVENT', `UID:${ev.id}@tenangfokus`, dtStart, dtEnd,
-      `SUMMARY:${ev.title}`, `LOCATION:${ev.location || ''}`, `DESCRIPTION:${ev.description || ''}`,
-      'END:VEVENT', 'END:VCALENDAR'
-    ].join('\r\n');
-    const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `${ev.title.replace(/[^a-z0-9]/gi, '_')}.ics`;
-    a.click();
+    `).join('') || '<div style="color:var(--muted);font-size:13px">Tidak ada agenda pada tanggal ini.</div>';
   }
 
   function setCalView(mode) {
@@ -897,9 +840,9 @@
   function selectCalDate(k) {
     androidVib(10); playClickSound(0.95); selectedDate = k;
     document.getElementById('evDate').value = k;
-    renderCalendar();
+    if (k.slice(0, 7) !== loadedMonth) { loadedMonth = k.slice(0, 7); apiGet(k); }
+    else renderCalendar();
   }
-
   function shiftCalendar(dir) {
     androidVib(12); playClickSound(0.9);
     const d = new Date(selectedDate + 'T12:00:00');
@@ -908,20 +851,18 @@
     else d.setDate(d.getDate() + dir);
     selectCalDate(toKey(d));
   }
-
-  function jumpToday() { selectCalDate(dateKeyOffset(0)); }
+  function jumpToday() { selectCalDate(state.todayKey || toKey(new Date())); }
   function toggleAllDayInput() { document.getElementById('evTimeRow').style.display = document.getElementById('evAllDay').checked ? 'none' : 'flex'; }
 
   function submitCalendarEvent() {
-    const title = document.getElementById('evTitle').value.trim();
-    const date = document.getElementById('evDate').value;
+    const title = document.getElementById('evTitle').value.trim(), date = document.getElementById('evDate').value;
     if (!title || !date) return;
     androidVib(18); playClickSound(1.15);
-    const id = document.getElementById('evId').value;
-    const item = {
-      id: id || ('ev_' + Date.now()),
+    const payload = {
+      eventId: document.getElementById('evId').value,
+      origCalId: document.getElementById('evOrigCalId').value,
       title, date,
-      color: document.getElementById('evCategory').value,
+      calId: document.getElementById('evCalSelect').value,
       repeat: document.getElementById('evRepeat').value,
       isAllDay: document.getElementById('evAllDay').checked,
       startTime: document.getElementById('evStart').value,
@@ -929,27 +870,22 @@
       location: document.getElementById('evLoc').value.trim(),
       description: document.getElementById('evDesc').value.trim()
     };
-    if (id) {
-      const idx = state.events.findIndex(x => x.id === id);
-      if (idx >= 0) state.events[idx] = item;
-    } else {
-      state.events.push(item);
-    }
-    saveStorage(); resetCalForm(); renderCalendar();
+    resetCalForm();
+    apiPost({ fn: 'saveCalendarEvent', payload, anchor: selectedDate });
   }
 
-  function editCalendarEvent(id) {
-    const ev = state.events.find(x => x.id === id);
+  function editCalendarEvent(dateKey, index) {
+    const ev = (state.calEvents || []).filter(e => e.dateKey === dateKey)[index];
     if (!ev) return;
     androidVib(14); playClickSound(1.1);
     document.getElementById('evId').value = ev.id;
+    document.getElementById('evOrigCalId').value = ev.calId;
     document.getElementById('evTitle').value = ev.title;
-    document.getElementById('evCategory').value = ev.color || '#818cf8';
-    document.getElementById('evRepeat').value = ev.repeat || 'NONE';
-    document.getElementById('evDate').value = ev.date;
+    document.getElementById('evCalSelect').value = ev.calId;
+    document.getElementById('evDate').value = ev.dateKey;
     document.getElementById('evAllDay').checked = ev.isAllDay;
-    document.getElementById('evStart').value = ev.startTime || '09:00';
-    document.getElementById('evEnd').value = ev.endTime || '10:00';
+    document.getElementById('evStart').value = ev.startStr || '09:00';
+    document.getElementById('evEnd').value = ev.endStr || '10:00';
     document.getElementById('evLoc').value = ev.location || '';
     document.getElementById('evDesc').value = ev.description || '';
     toggleAllDayInput();
@@ -960,39 +896,19 @@
   }
 
   function resetCalForm() {
-    document.getElementById('evId').value = '';
-    document.getElementById('evTitle').value = '';
-    document.getElementById('evLoc').value = '';
-    document.getElementById('evDesc').value = '';
-    document.getElementById('evAllDay').checked = false;
-    toggleAllDayInput();
-    document.getElementById('calFormHeader').textContent = 'TAMBAH JADWAL & AGENDA';
-    document.getElementById('evSubmitBtn').textContent = 'Simpan Jadwal';
+    document.getElementById('evId').value = ''; document.getElementById('evOrigCalId').value = '';
+    document.getElementById('evTitle').value = ''; document.getElementById('evLoc').value = ''; document.getElementById('evDesc').value = '';
+    document.getElementById('evAllDay').checked = false; toggleAllDayInput();
+    document.getElementById('calFormHeader').textContent = 'TAMBAH JADWAL GOOGLE CALENDAR';
+    document.getElementById('evSubmitBtn').textContent = 'Simpan ke Google Calendar';
     document.getElementById('cancelEditBtn').style.display = 'none';
   }
+  function doDeleteCal(calId, eventId) { androidVib(22); playClickSound(0.7); apiPost({ fn: 'deleteCalendarEvent', calId, eventId, anchor: selectedDate }); }
 
-  function deleteCalendarEvent(id) {
-    androidVib(22); playClickSound(0.7);
-    state.events = state.events.filter(x => x.id !== id);
-    saveStorage(); renderCalendar();
-  }
-
-  // === RENDER ALL MODULES ===
   function renderAll() {
     renderCalendar();
-    const today = dateKeyOffset(0);
-    const yesterday = dateKeyOffset(1);
-    const monthPrefix = today.slice(0, 7);
-
-    // 1. Grit & 7-Day Focus Chart
-    const todaySprint = state.sprints[today] || { mins: 0, sessions: 0 };
-    document.getElementById('gritStat').textContent = `Hari ini: ${todaySprint.mins} mnt (${todaySprint.sessions} sesi)`;
-    const hist = [];
-    for (let i = 6; i >= 0; i--) {
-      const k = dateKeyOffset(i);
-      const s = state.sprints[k] || { mins: 0 };
-      hist.push({ label: dayLabelOffset(i), mins: s.mins, isToday: i === 0 });
-    }
+    document.getElementById('gritStat').textContent = `Hari ini: ${state.grit.mins} mnt (${state.grit.sessions} sesi)`;
+    const hist = state.grit.history7Days || [];
     document.getElementById('weekTotalStat').textContent = `Total: ${hist.reduce((a, d) => a + d.mins, 0)} mnt`;
     const maxMins = Math.max(45, ...hist.map(d => d.mins));
     document.getElementById('gritChart').innerHTML = hist.map(d => {
@@ -1001,172 +917,89 @@
       return `<div class="bar-col"><div class="bar-val">${d.mins > 0 ? d.mins + 'm' : ''}</div><div class="bar-track"><div class="bar-fill" style="height:${d.mins > 0 ? Math.max(8, pct) : 0}%;background:${bg}"></div></div><div class="bar-lbl" style="${d.isToday ? 'color:var(--sky);font-weight:700' : ''}">${d.label}</div></div>`;
     }).join('');
 
-    // 2. Tasks
-    document.getElementById('taskList').innerHTML = state.tasks.map(t => {
+    document.getElementById('taskList').innerHTML = (state.tasks || []).map(t => {
       const rem = t.reminder ? `<span class="badge-due">${t.reminder.replace('T', ' ')}</span>` : '';
       return `<div class="item-row ${t.done ? 'done' : ''}">
-        <label for="sw-check" class="check-circle" onclick="toggleTask('${t.id}')">${t.done ? '✓' : ''}</label>
-        <label for="sw-check" class="item-body" onclick="toggleTask('${t.id}')"><div class="item-text">${t.text}</div>${rem ? `<div class="item-meta">${rem}</div>` : ''}</label>
-        <button class="icon-action" onclick="deleteTask('${t.id}')">✕</button>
+        <label for="sw-check" class="check-circle" onclick="apiPost({fn:'toggleTask',id:'${t.id}'})">${t.done ? '✓' : ''}</label>
+        <label for="sw-check" class="item-body" onclick="apiPost({fn:'toggleTask',id:'${t.id}'})"><div class="item-text">${t.text}</div>${rem ? `<div class="item-meta">${rem}</div>` : ''}</label>
+        <button class="icon-action" onclick="apiPost({fn:'deleteRowById',sheetName:'Tasks',id:'${t.id}'})">✕</button>
       </div>`;
     }).join('') || '<div style="color:var(--muted);font-size:13px">Belum ada tugas aktif.</div>';
 
-    // 3. Habits & 7-Day Consistency Chart
-    let doneCountToday = 0;
-    document.getElementById('habitList').innerHTML = state.habits.map(h => {
-      const doneToday = h.lastDone === today;
-      if (doneToday) doneCountToday++;
-      const validStreak = (h.lastDone === today || h.lastDone === yesterday) ? h.streak : 0;
-      return `<div class="item-row ${doneToday ? 'done' : ''}">
-        <label for="sw-check" class="check-circle" onclick="toggleHabit('${h.id}')">${doneToday ? '✓' : ''}</label>
-        <label for="sw-check" class="item-body" onclick="toggleHabit('${h.id}')"><div class="item-text">${h.name}</div></label>
-        <span class="badge-streak">${validStreak} hari</span>
-        <button class="icon-action" onclick="deleteHabit('${h.id}')">✕</button>
-      </div>`;
-    }).join('');
-    document.getElementById('habitProgress').textContent = `${doneCountToday}/${state.habits.length} selesai`;
-    state.habitLogs[today] = doneCountToday;
+    const doneH = (state.habits || []).filter(h => h.doneToday).length;
+    document.getElementById('habitProgress').textContent = `${doneH}/${(state.habits || []).length} selesai`;
+    document.getElementById('habitList').innerHTML = (state.habits || []).map(h => `
+      <div class="item-row ${h.doneToday ? 'done' : ''}">
+        <label for="sw-check" class="check-circle" onclick="apiPost({fn:'toggleHabit',id:'${h.id}'})">${h.doneToday ? '✓' : ''}</label>
+        <label for="sw-check" class="item-body" onclick="apiPost({fn:'toggleHabit',id:'${h.id}'})"><div class="item-text">${h.name}</div></label>
+        <span class="badge-streak">${h.streak} hari</span>
+        <button class="icon-action" onclick="apiPost({fn:'deleteRowById',sheetName:'Habits',id:'${h.id}'})">✕</button>
+      </div>`).join('');
 
-    const h7 = [];
-    for (let i = 6; i >= 0; i--) {
-      const k = dateKeyOffset(i);
-      h7.push({ label: dayLabelOffset(i), count: state.habitLogs[k] || 0, isToday: i === 0 });
-    }
-    const maxH = Math.max(state.habits.length || 4, ...h7.map(x => x.count));
+    const h7 = state.habit7Days || [], maxH = Math.max((state.habits || []).length || 4, ...h7.map(x => x.count));
     document.getElementById('habitChart').innerHTML = h7.map(d => {
       const pct = Math.round((d.count / maxH) * 100);
       return `<div class="bar-col"><div class="bar-val">${d.count > 0 ? d.count : ''}</div><div class="bar-track"><div class="bar-fill" style="height:${d.count > 0 ? Math.max(8, pct) : 0}%;background:${d.isToday ? 'var(--emerald)' : 'rgba(52,211,153,.45)'}"></div></div><div class="bar-lbl" style="${d.isToday ? 'color:var(--emerald);font-weight:700' : ''}">${d.label}</div></div>`;
     }).join('');
 
-    // 4. Finance & Category Bar Chart
-    let income = 0, expense = 0;
-    const catMap = {};
-    state.finance.forEach(f => {
-      if (f.date.startsWith(monthPrefix)) {
-        if (f.type === 'Masuk') income += f.amount;
-        else { expense += f.amount; catMap[f.category] = (catMap[f.category] || 0) + f.amount; }
-      }
-    });
-    document.getElementById('finBalance').textContent = rupiah(income - expense);
-    document.getElementById('finIn').textContent = rupiah(income);
-    document.getElementById('finOut').textContent = rupiah(expense);
+    document.getElementById('finBalance').textContent = rupiah(state.finance.balance);
+    document.getElementById('finIn').textContent = rupiah(state.finance.income);
+    document.getElementById('finOut').textContent = rupiah(state.finance.expense);
 
-    const cats = Object.keys(catMap).map(k => ({ category: k, amount: catMap[k] })).sort((a, b) => b.amount - a.amount);
-    const totalExp = expense || 1;
+    const cats = state.finance.byCategory || [], totalExp = state.finance.expense || 1;
     const cols = ['var(--rose)', 'var(--amber)', 'var(--sky)', 'var(--violet)', 'var(--emerald)'];
     document.getElementById('finCatChart').innerHTML = cats.map((c, idx) => {
       const pct = Math.round((c.amount / totalExp) * 100);
       return `<div><div class="cat-head"><span style="font-weight:600">${c.category}</span><span style="color:var(--muted)">${rupiah(c.amount)} (${pct}%)</span></div><div class="cat-track"><div class="cat-fill" style="width:${Math.max(4, pct)}%;background:${cols[idx % cols.length]}"></div></div></div>`;
     }).join('') || '<div style="color:var(--muted);font-size:13px">Belum ada pengeluaran bulan ini.</div>';
 
-    document.getElementById('finList').innerHTML = state.finance.slice(0, 25).map(f => `
-      <div class="item-row"><div class="item-body"><div class="item-text">${f.category} ${f.note ? '· ' + f.note : ''}</div><div class="item-meta">${f.date}</div></div><div style="font-weight:700;color:${f.type === 'Masuk' ? 'var(--emerald)' : 'var(--rose)'}">${f.type === 'Masuk' ? '+' : '-'}${rupiah(f.amount)}</div><button class="icon-action" onclick="deleteFin('${f.id}')">✕</button></div>`).join('') || '<div style="color:var(--muted);font-size:13px">Belum ada transaksi tercatat.</div>';
+    document.getElementById('finList').innerHTML = (state.finance.items || []).map(f => `
+      <div class="item-row"><div class="item-body"><div class="item-text">${f.category} ${f.note ? '· ' + f.note : ''}</div><div class="item-meta">${f.date}</div></div><div style="font-weight:700;color:${f.type === 'Masuk' ? 'var(--emerald)' : 'var(--rose)'}">${f.type === 'Masuk' ? '+' : '-'}${rupiah(f.amount)}</div><button class="icon-action" onclick="apiPost({fn:'deleteRowById',sheetName:'Finance',id:'${f.id}'})">✕</button></div>`).join('') || '<div style="color:var(--muted);font-size:13px">Belum ada transaksi tercatat.</div>';
 
-    // 5. Notes & Brain Dump
-    document.getElementById('notesGrid').innerHTML = state.notes.map(n => `
-      <div class="note-card" onclick="editNote('${n.id}')"><div style="display:flex;justify-content:space-between;align-items:center"><div class="note-title">${n.title}</div><span style="font-size:11px;color:var(--muted)" onclick="event.stopPropagation();deleteNote('${n.id}')">✕</span></div><div class="note-snippet">${n.body}</div><div style="font-size:10px;color:var(--violet);margin-top:6px">${n.updated}</div></div>`).join('');
+    document.getElementById('notesGrid').innerHTML = (state.notes || []).map(n => `
+      <div class="note-card" onclick="editNote('${n.id}')"><div style="display:flex;justify-content:space-between;align-items:center"><div class="note-title">${n.title}</div><span style="font-size:11px;color:var(--muted)" onclick="event.stopPropagation();apiPost({fn:'deleteRowById',sheetName:'Notes',id:'${n.id}'})">✕</span></div><div class="note-snippet">${n.body}</div><div style="font-size:10px;color:var(--violet);margin-top:6px">${n.updated}</div></div>`).join('');
 
-    document.getElementById('dumpList').innerHTML = state.dumps.slice(0, 30).map(d => `
-      <div class="item-row"><div class="item-body"><div class="item-meta"><span style="color:var(--amber);font-weight:600">${d.tag}</span></div><div class="item-text">${d.text}</div></div><button class="icon-action" onclick="deleteDump('${d.id}')">✕</button></div>`).join('') || '<div style="color:var(--muted);font-size:13px">Kepala bersih, belum ada parkir ide.</div>';
+    document.getElementById('dumpList').innerHTML = (state.dumps || []).map(d => `
+      <div class="item-row"><div class="item-body"><div class="item-meta"><span style="color:var(--amber);font-weight:600">${d.tag}</span></div><div class="item-text">${d.text}</div></div><button class="icon-action" onclick="apiPost({fn:'deleteRowById',sheetName:'BrainDump',id:'${d.id}'})">✕</button></div>`).join('') || '<div style="color:var(--muted);font-size:13px">Kepala bersih, belum ada parkir ide.</div>';
   }
 
-  // === CRUD HANDLERS ===
   function submitTask() {
     const inp = document.getElementById('taskInput'), rem = document.getElementById('taskTime');
     if (!inp.value.trim()) return;
     androidVib(16); playClickSound(1.1);
-    state.tasks.unshift({ id: 't_' + Date.now(), text: inp.value.trim(), reminder: rem.value, done: false });
-    if (rem.value) {
-      state.events.push({
-        id: 'ev_t_' + Date.now(), title: '[Deadline] ' + inp.value.trim(),
-        date: rem.value.slice(0, 10), color: '#fbbf24', repeat: 'NONE',
-        isAllDay: false, startTime: rem.value.slice(11, 16) || '09:00', endTime: '23:59',
-        location: '', description: 'Otomatis dari Task TenangFokus'
-      });
-    }
+    apiPost({ fn: 'addTask', text: inp.value.trim(), reminder: rem.value, syncCal: true });
     inp.value = ''; rem.value = '';
-    saveStorage(); renderAll();
   }
-  function toggleTask(id) {
-    androidVib(16); playClickSound(1.2);
-    const t = state.tasks.find(x => x.id === id);
-    if (t) t.done = !t.done;
-    saveStorage(); renderAll();
-  }
-  function deleteTask(id) { androidVib(20); playClickSound(0.7); state.tasks = state.tasks.filter(x => x.id !== id); saveStorage(); renderAll(); }
-
   function submitHabit() {
     const inp = document.getElementById('habitInput');
     if (!inp.value.trim()) return;
     androidVib(16); playClickSound(1.1);
-    state.habits.push({ id: 'h_' + Date.now(), name: inp.value.trim(), streak: 0, lastDone: '' });
-    inp.value = ''; saveStorage(); renderAll();
+    apiPost({ fn: 'addHabit', name: inp.value.trim() }); inp.value = '';
   }
-  function toggleHabit(id) {
-    androidVib(20); playClickSound(1.25);
-    const h = state.habits.find(x => x.id === id);
-    const today = dateKeyOffset(0), yesterday = dateKeyOffset(1);
-    if (h) {
-      if (h.lastDone === today) { h.streak = Math.max(0, h.streak - 1); h.lastDone = ''; }
-      else { h.streak = (h.lastDone === yesterday ? h.streak + 1 : 1); h.lastDone = today; }
-    }
-    saveStorage(); renderAll();
-  }
-  function deleteHabit(id) { androidVib(20); playClickSound(0.7); state.habits = state.habits.filter(x => x.id !== id); saveStorage(); renderAll(); }
-
   function submitFin() {
     const amt = Number(document.getElementById('finAmt').value);
     if (!amt || amt <= 0) return;
     androidVib(16); playClickSound(1.05);
-    state.finance.unshift({
-      id: 'f_' + Date.now(), date: dateKeyOffset(0),
-      type: document.getElementById('finType').value,
-      category: document.getElementById('finCat').value,
-      amount: amt, note: document.getElementById('finNote').value.trim()
-    });
+    apiPost({ fn: 'addTransaction', type: document.getElementById('finType').value, category: document.getElementById('finCat').value, amount: amt, note: document.getElementById('finNote').value.trim() });
     document.getElementById('finAmt').value = ''; document.getElementById('finNote').value = '';
-    saveStorage(); renderAll();
   }
-  function deleteFin(id) { androidVib(20); playClickSound(0.7); state.finance = state.finance.filter(x => x.id !== id); saveStorage(); renderAll(); }
-
   function submitNote() {
     const id = document.getElementById('noteId').value, title = document.getElementById('noteTitle').value.trim(), body = document.getElementById('noteBody').value.trim();
     if (!title && !body) return;
     androidVib(16); playClickSound(1.1);
-    const now = new Date();
-    const stamp = `${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-    if (id) {
-      const n = state.notes.find(x => x.id === id);
-      if (n) { n.title = title || 'Tanpa Judul'; n.body = body; n.updated = stamp; }
-    } else {
-      state.notes.unshift({ id: 'n_' + Date.now(), title: title || 'Tanpa Judul', body, updated: stamp });
-    }
-    clearNoteForm(); saveStorage(); renderAll();
+    apiPost({ fn: 'saveNote', id, title, body }); clearNoteForm();
   }
   function editNote(id) {
-    const n = state.notes.find(x => x.id === id);
+    const n = (state.notes || []).find(x => x.id === id);
     if (!n) return;
-    androidVib(12); playClickSound(1.0);
     document.getElementById('noteId').value = n.id; document.getElementById('noteTitle').value = n.title; document.getElementById('noteBody').value = n.body;
   }
   function clearNoteForm() { document.getElementById('noteId').value = ''; document.getElementById('noteTitle').value = ''; document.getElementById('noteBody').value = ''; }
-  function deleteNote(id) { androidVib(20); playClickSound(0.7); state.notes = state.notes.filter(x => x.id !== id); saveStorage(); renderAll(); }
-
   function submitDump() {
     const inp = document.getElementById('dumpInput');
     if (!inp.value.trim()) return;
     androidVib(16); playClickSound(1.1);
-    state.dumps.unshift({ id: 'd_' + Date.now(), tag: document.getElementById('dumpTag').value, text: inp.value.trim() });
-    inp.value = ''; saveStorage(); renderAll();
-  }
-  function deleteDump(id) { androidVib(20); playClickSound(0.7); state.dumps = state.dumps.filter(x => x.id !== id); saveStorage(); renderAll(); }
-
-  function exportBackup() {
-    const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `TenangFokus_Backup_${dateKeyOffset(0)}.json`;
-    a.click();
+    apiPost({ fn: 'addDump', tag: document.getElementById('dumpTag').value, text: inp.value.trim() }); inp.value = '';
   }
 
   function switchTab(name) {
@@ -1176,9 +1009,7 @@
     document.getElementById('tab-' + name).classList.add('active');
   }
 
-  function updateTimerUI() {
-    document.getElementById('timerDisplay').textContent = `${String(Math.floor(timerSec / 60)).padStart(2, '0')}:${String(timerSec % 60).padStart(2, '0')}`;
-  }
+  function updateTimerUI() { document.getElementById('timerDisplay').textContent = `${String(Math.floor(timerSec / 60)).padStart(2, '0')}:${String(timerSec % 60).padStart(2, '0')}`; }
   function setTimer(mins, el) {
     androidVib(12); playClickSound(1.0); clearInterval(timerInterval); timerInterval = null;
     targetMins = mins; timerSec = mins * 60; updateTimerUI();
@@ -1196,11 +1027,7 @@
         if (timerSec > 0) { timerSec--; updateTimerUI(); }
         else {
           clearInterval(timerInterval); timerInterval = null; androidVib([100, 60, 100]); playClickSound(1.35);
-          btn.textContent = 'Selesai (+Grit)';
-          const k = dateKeyOffset(0);
-          if (!state.sprints[k]) state.sprints[k] = { mins: 0, sessions: 0 };
-          state.sprints[k].mins += targetMins; state.sprints[k].sessions += 1;
-          saveStorage(); renderAll();
+          btn.textContent = 'Selesai (+Grit)'; apiPost({ fn: 'logSprint', mins: targetMins });
         }
       }, 1000);
     }
@@ -1239,68 +1066,46 @@
       try {
         wakeLock = await navigator.wakeLock.request('screen');
         ['wakeBtnDesk', 'wakeBtnMob'].forEach(id => document.getElementById(id).classList.add('active'));
-        document.getElementById('wakeTextDesk').textContent = 'Layar Nyala'; document.getElementById('wakeTextMob').textContent = 'Nyala';
+        document.getElementById('wakeTextDesk').textContent = 'Layar: Nyala'; document.getElementById('wakeTextMob').textContent = 'Nyala';
       } catch (e) {}
     } else if (wakeLock) {
       await wakeLock.release(); wakeLock = null;
       ['wakeBtnDesk', 'wakeBtnMob'].forEach(id => document.getElementById(id).classList.remove('active'));
-      document.getElementById('wakeTextDesk').textContent = 'Offline Ready'; document.getElementById('wakeTextMob').textContent = 'Layar';
+      document.getElementById('wakeTextDesk').textContent = 'Layar: Auto'; document.getElementById('wakeTextMob').textContent = 'Layar';
     }
   }
 
-  // === BUILD DIRECT-LABEL iOS TAPTIC FIDGET WIDGETS ===
+  // Direct Label Overlay Fidgets for 100% iOS Taptic Engine
   const pool = document.getElementById('hapticSwitchPool');
   const grid = document.getElementById('bubbleGrid');
   for (let i = 0; i < 16; i++) {
-    const sw = document.createElement('input');
-    sw.type = 'checkbox';
-    sw.setAttribute('switch', '');
-    sw.id = 'sw-bub-' + i;
-    sw.className = 'sr-switch';
-    pool.appendChild(sw);
-
-    const lbl = document.createElement('label');
-    lbl.setAttribute('for', sw.id);
-    lbl.className = 'bubble-label';
-    lbl.onclick = () => {
-      const popping = !lbl.classList.contains('popped');
-      androidVib(18);
-      playClickSound(popping ? 1.25 : 0.88);
-      lbl.classList.toggle('popped');
-    };
+    const sw = document.createElement('input'); sw.type = 'checkbox'; sw.setAttribute('switch', ''); sw.id = 'sw-bub-' + i; sw.className = 'sr-switch'; pool.appendChild(sw);
+    const lbl = document.createElement('label'); lbl.setAttribute('for', sw.id); lbl.className = 'bubble-label';
+    lbl.onclick = () => { const p = !lbl.classList.contains('popped'); androidVib(18); playClickSound(p ? 1.25 : 0.88); lbl.classList.toggle('popped'); };
     grid.appendChild(lbl);
   }
 
   const detentTrack = document.getElementById('detentTrack');
   for (let i = 1; i <= 7; i++) {
-    const sw = document.createElement('input');
-    sw.type = 'checkbox';
-    sw.setAttribute('switch', '');
-    sw.id = 'sw-det-' + i;
-    sw.className = 'sr-switch';
-    pool.appendChild(sw);
-
-    const lbl = document.createElement('label');
-    lbl.setAttribute('for', sw.id);
-    lbl.className = 'detent-label' + (i <= 4 ? ' active' : '');
+    const sw = document.createElement('input'); sw.type = 'checkbox'; sw.setAttribute('switch', ''); sw.id = 'sw-det-' + i; sw.className = 'sr-switch'; pool.appendChild(sw);
+    const lbl = document.createElement('label'); lbl.setAttribute('for', sw.id); lbl.className = 'detent-label' + (i <= 4 ? ' active' : '');
     lbl.onclick = () => {
-      androidVib(22);
-      playClickSound(0.75 + i * 0.08);
+      androidVib(22); playClickSound(0.75 + i * 0.08);
       document.getElementById('detentVal').textContent = `Level ${i}/7`;
       Array.from(detentTrack.children).forEach((el, idx) => el.classList.toggle('active', idx < i));
     };
     detentTrack.appendChild(lbl);
   }
 
-  function onPulseTap() {
-    androidVib(26);
-    playClickSound(0.8 + (tapTotal % 5) * 0.07);
-    tapTotal++;
-    document.getElementById('tapCount').textContent = `${tapTotal} ketukan`;
-  }
+  function onPulseTap() { androidVib(26); playClickSound(0.8 + (tapTotal % 5) * 0.07); tapTotal++; document.getElementById('tapCount').textContent = `${tapTotal} ketukan`; }
 
-  loadStorage();
+  // Boot from cache first, then sync with Google Calendar & Sheets
+  try {
+    const cached = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    if (cached) state = Object.assign(state, cached);
+  } catch (e) {}
   renderAll();
+  apiGet(selectedDate);
 </script>
 </body>
 </html>
