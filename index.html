@@ -9,7 +9,7 @@
 <meta id="metaThemeColor" name="theme-color" content="#0b0f17">
 <link id="appleTouchIcon" rel="apple-touch-icon" sizes="180x180">
 <link id="appManifest" rel="manifest">
-<title>TenangFokus v.3.1 by rudymuda</title>
+<title>TenangFokus v.3.2 by rudymuda</title>
 <style>
   :root {
     --bg: #0b0f17; --surface: #131a26; --surface-2: #1c2536; --border: #273349;
@@ -109,9 +109,10 @@
   button.btn-amber { background: var(--amber); color: #ffffff; border: none; }
   button.btn-violet { background: var(--violet); color: #ffffff; border: none; }
   button.tonal-violet { background: var(--violet-bg); color: var(--violet); border: 1px solid rgba(124,58,237,.3); }
-  button.chip { min-height: 34px; padding: 6px 12px; font-size: 12px; border-radius: 999px; color: var(--muted); border: 1px solid var(--border); }
+  button.chip { min-height: 32px; padding: 5px 11px; font-size: 12px; border-radius: 999px; color: var(--muted); border: 1px solid var(--border); }
   button.chip.selected { background: var(--sky-bg); color: var(--sky); border-color: var(--sky); }
   button.chip.selected-indigo { background: var(--indigo-bg); color: var(--indigo); border-color: var(--indigo); }
+  button.chip.selected-emerald { background: var(--emerald-bg); color: var(--emerald); border-color: var(--emerald); }
   .bottom-nav button, .side-btn, .icon-action { border: none; }
 
   input, select, textarea { width: 100%; background: var(--surface-2); color: var(--text); border: 1px solid var(--border); border-radius: 14px; padding: 11px 14px; font-size: 16px; outline: none; font-family: inherit; }
@@ -159,15 +160,17 @@
   .cat-track { width: 100%; height: 10px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 999px; overflow: hidden; }
   .cat-fill { height: 100%; border-radius: 999px; transition: width .35s ease; }
 
-  .item-row { display: flex; align-items: center; gap: 12px; padding: 12px 2px; border-bottom: 1px solid var(--border); }
+  .item-row { display: flex; align-items: center; gap: 10px; padding: 11px 2px; border-bottom: 1px solid var(--border); }
   .item-row:last-child { border-bottom: none; padding-bottom: 2px; }
   .check-circle { width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--muted); flex-shrink: 0; display: flex; align-items: center; justify-content: center; cursor: pointer; }
   .done .check-circle { background: var(--emerald); border-color: var(--emerald); color: #ffffff; font-weight: 700; }
   .done .item-text { text-decoration: line-through; color: var(--muted); }
   .item-body { flex: 1; min-width: 0; cursor: pointer; }
-  .item-meta { font-size: 11px; color: var(--muted); margin-top: 3px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .item-meta { font-size: 11px; color: var(--muted); margin-top: 3px; display: flex; gap: 6px; flex-wrap: wrap; }
   .badge-due { color: var(--amber); background: var(--amber-bg); padding: 1px 7px; border-radius: 6px; }
   .badge-mail { color: var(--sky); background: var(--sky-bg); padding: 1px 7px; border-radius: 6px; }
+  .badge-prio-high { color: var(--rose); background: var(--rose-bg); padding: 1px 7px; border-radius: 6px; font-weight: 700; }
+  .badge-prio-low { color: var(--emerald); background: var(--emerald-bg); padding: 1px 7px; border-radius: 6px; }
   .badge-streak { color: var(--emerald); background: var(--emerald-bg); padding: 2px 9px; border-radius: 999px; font-size: 11px; font-weight: 700; }
 
   .stat-box { background: var(--surface-2); border: 1px solid var(--border); border-radius: 14px; padding: 12px; }
@@ -251,15 +254,15 @@
 </head>
 <body>
 
-<!-- MODAL KONEKSI GOOGLE CALENDAR & SYNC QUEUE -->
+<!-- MODAL KONEKSI GOOGLE CALENDAR & SHEETS SYNC -->
 <div class="modal-backdrop" id="syncModal">
   <div class="modal-box">
     <div class="card-title">
-      <span>KONEKSI GOOGLE & OFFLINE SYNC</span>
+      <span>KONEKSI GOOGLE SHEETS & CALENDAR</span>
       <button class="chip" onclick="closeSyncModal()">Tutup</button>
     </div>
     <p style="font-size:12px;color:var(--muted);margin:0 0 10px">
-      Semua data tersimpan otomatis di HP (<strong>Local-First</strong>). Tempel <strong>Web app URL</strong> Google Apps Script untuk sinkronisasi cloud & kalender:
+      Tempel <strong>Web app URL</strong> Google Apps Script agar To-Do List, Habit, Keuangan, Notes, dan Kalender tersinkron ke Google Sheets:
     </p>
     <input id="gasUrlInput" placeholder="https://script.google.com/macros/s/.../exec" style="margin-bottom:10px">
     <div class="row" style="margin-bottom:10px">
@@ -285,7 +288,7 @@
         <div class="brand-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg></div>
         <div>
           TenangFokus
-          <span class="brand-sub">v.3.1 by rudymuda</span>
+          <span class="brand-sub">v.3.2 by rudymuda</span>
         </div>
       </div>
       <div class="side-menu">
@@ -295,7 +298,7 @@
         </button>
         <button class="side-btn" data-tab="focus" data-color="sky" onclick="switchTab('focus')">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
-          Fokus, Grit & Tasks
+          Fokus & To-Do Checklist
         </button>
         <button class="side-btn" data-tab="habit" data-color="emerald" onclick="switchTab('habit')">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
@@ -337,7 +340,7 @@
         <div class="brand-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg></div>
         <div>
           TenangFokus
-          <span class="brand-sub">v.3.1 by rudymuda</span>
+          <span class="brand-sub">v.3.2 by rudymuda</span>
         </div>
       </div>
       <div class="row" style="gap:5px">
@@ -435,7 +438,7 @@
       </div>
     </div>
 
-    <!-- TAB 2: FOKUS, GRIT & TASK REMINDER -->
+    <!-- TAB 2: FOKUS, AMBIENT SOUND (BROWN/PINK/WHITE/RAIN) & TO-DO CHECKLIST REMINDER -->
     <div id="tab-focus" class="view">
       <div class="desktop-grid-2">
         <div>
@@ -460,10 +463,11 @@
                 <span style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase">Ambient Sound Fokus</span>
                 <button class="chip" id="ambientToggleBtn" onclick="toggleAmbient()">Off</button>
               </div>
-              <div class="row" style="margin-bottom:10px">
-                <button class="chip selected" id="snd-brown" onclick="selectAmbientType('brown')">Brown Noise</button>
-                <button class="chip" id="snd-pink" onclick="selectAmbientType('pink')">Pink Noise</button>
-                <button class="chip" id="snd-rain" onclick="selectAmbientType('rain')">Hujan Lembut</button>
+              <div class="row" style="margin-bottom:10px;flex-wrap:wrap">
+                <button class="chip selected" id="snd-brown" onclick="selectAmbientType('brown')">Brown</button>
+                <button class="chip" id="snd-pink" onclick="selectAmbientType('pink')">Pink</button>
+                <button class="chip" id="snd-white" onclick="selectAmbientType('white')">White Noise</button>
+                <button class="chip" id="snd-rain" onclick="selectAmbientType('rain')">Hujan</button>
               </div>
               <div class="row">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/></svg>
@@ -479,12 +483,28 @@
           </div>
         </div>
 
+        <!-- TO-DO LIST, CHECKLIST & REMINDER -->
         <div class="card accent-emerald">
-          <div class="card-title"><span>TASK & EMAIL REMINDER (AUTO / MANUAL)</span></div>
-          <div class="row" style="margin-bottom:8px"><input id="taskInput" placeholder="Tambah tugas atau deadline..."></div>
-          <div class="row" style="margin-bottom:12px">
+          <div class="card-title">
+            <span>TO-DO CHECKLIST & REMINDER</span>
+            <span id="taskCounterBadge" style="color:var(--emerald)">0/0 selesai</span>
+          </div>
+          <div class="row" style="margin-bottom:8px">
+            <input id="taskInput" placeholder="Tambah checklist tugas / pengingat...">
+            <select id="taskPrio" style="flex:0 0 112px;font-size:13px">
+              <option value="Normal">Normal</option>
+              <option value="Penting">Penting</option>
+              <option value="Santai">Santai</option>
+            </select>
+          </div>
+          <div class="row" style="margin-bottom:10px">
             <input id="taskTime" type="datetime-local" style="font-size:13px;color:var(--muted)">
-            <button class="btn-emerald" style="flex:0 0 92px" onclick="submitTask()">Simpan</button>
+            <button class="btn-emerald" style="flex:0 0 92px" onclick="submitTask()">Tambah</button>
+          </div>
+          <div class="row" style="margin-bottom:12px">
+            <button class="chip selected-emerald" id="tf-ALL" onclick="setTaskFilter('ALL')">Semua</button>
+            <button class="chip" id="tf-ACTIVE" onclick="setTaskFilter('ACTIVE')">Belum Selesai</button>
+            <button class="chip" id="tf-DONE" onclick="setTaskFilter('DONE')">Selesai</button>
           </div>
           <div id="taskList"></div>
         </div>
@@ -589,7 +609,7 @@
       </div>
     </div>
 
-    <!-- TAB 6: FIDGET (DRAGGABLE TAPTIC SLIDER + IN-PLACE BUBBLES + PULSE PAD) -->
+    <!-- TAB 6: FIDGET -->
     <div id="tab-fidget" class="view">
       <div class="desktop-grid-3">
         <div class="card accent-sky">
@@ -635,7 +655,7 @@
       </div>
     </div>
 
-    <div class="mobile-footer-credit">TenangFokus v.3.1 by rudymuda</div>
+    <div class="mobile-footer-credit">TenangFokus v.3.2 by rudymuda</div>
   </main>
 
   <nav class="bottom-nav">
@@ -748,12 +768,13 @@
     return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
   }
 
-  // === 3. LOCAL-FIRST STATE & OFFLINE SYNC QUEUE ===
-  const STORAGE_KEY = 'tenangfokus_v31_rudymuda';
-  const QUEUE_KEY = 'tenangfokus_sync_queue_v31';
+  // === 3. LOCAL-FIRST STATE & SHEETS SYNC QUEUE ===
+  const STORAGE_KEY = 'tenangfokus_v32_rudymuda';
+  const QUEUE_KEY = 'tenangfokus_sync_queue_v32';
   const GAS_URL_KEY = 'tenangfokus_gas_url';
   let gasUrl = localStorage.getItem(GAS_URL_KEY) || '';
   let syncQueue = [];
+  let taskFilter = 'ALL';
 
   let state = {
     todayKey: getLocalTodayKey(),
@@ -811,7 +832,7 @@
   let loadedMonth = selectedDate.slice(0, 7);
   let targetMins = 15, timerSec = 900, timerInterval = null, breathInterval = null, wakeLock = null, tapTotal = 0;
 
-  // === 4. ZERO-LATENCY WEB AUDIO ENGINE ===
+  // === 4. ZERO-LATENCY WEB AUDIO ENGINE (BROWN / PINK / WHITE NOISE / RAIN) ===
   let audioCtx = null, clickBuffer = null, ambientSource = null, ambientFilter = null, ambientGain = null;
   let isAmbientOn = false, ambientType = 'brown', ambientVolume = 0.40, clickSoundOn = true;
 
@@ -861,9 +882,15 @@
     stopAmbientNodes(); initAudioEngine();
     const sr = audioCtx.sampleRate, bufferSize = 3 * sr;
     const noiseBuffer = audioCtx.createBuffer(1, bufferSize, sr), out = noiseBuffer.getChannelData(0);
+
     if (ambientType === 'brown') {
       let last = 0;
-      for (let i = 0; i < bufferSize; i++) { const w = Math.random() * 2 - 1; out[i] = (last + 0.02 * w) / 1.02; last = out[i]; out[i] *= 3.4; }
+      for (let i = 0; i < bufferSize; i++) {
+        const w = Math.random() * 2 - 1;
+        out[i] = (last + 0.02 * w) / 1.02;
+        last = out[i];
+        out[i] *= 3.4;
+      }
     } else if (ambientType === 'pink') {
       let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
       for (let i = 0; i < bufferSize; i++) {
@@ -871,6 +898,10 @@
         b0 = 0.99886*b0 + w*0.0555179; b1 = 0.99332*b1 + w*0.0750759; b2 = 0.96900*b2 + w*0.1538520;
         b3 = 0.86650*b3 + w*0.3104856; b4 = 0.55000*b4 + w*0.5329522; b5 = -0.7616*b5 - w*0.0168980;
         out[i] = (b0+b1+b2+b3+b4+b5+b6+w*0.5362)*0.11; b6 = w*0.115926;
+      }
+    } else if (ambientType === 'white') {
+      for (let i = 0; i < bufferSize; i++) {
+        out[i] = (Math.random() * 2 - 1) * 0.28;
       }
     } else {
       let b0=0,b1=0,b2=0;
@@ -880,15 +911,25 @@
         out[i] = (b0+b1+b2)*0.35 + (Math.random() < 0.0025 ? Math.random()*0.55*w : 0);
       }
     }
-    ambientSource = audioCtx.createBufferSource(); ambientSource.buffer = noiseBuffer; ambientSource.loop = true;
-    ambientFilter = audioCtx.createBiquadFilter(); ambientFilter.type = 'lowpass';
-    ambientFilter.frequency.value = ambientType === 'rain' ? 1150 : (ambientType === 'pink' ? 1800 : 650);
+
+    ambientSource = audioCtx.createBufferSource();
+    ambientSource.buffer = noiseBuffer;
+    ambientSource.loop = true;
+
+    ambientFilter = audioCtx.createBiquadFilter();
+    ambientFilter.type = 'lowpass';
+    ambientFilter.frequency.value = ambientType === 'white' ? 5200 : (ambientType === 'pink' ? 1800 : (ambientType === 'rain' ? 1150 : 650));
+
     ambientGain = audioCtx.createGain();
     ambientGain.gain.setValueAtTime(0.001, audioCtx.currentTime);
     ambientGain.gain.linearRampToValueAtTime(ambientVolume * 0.45, audioCtx.currentTime + 0.15);
-    ambientSource.connect(ambientFilter); ambientFilter.connect(ambientGain); ambientGain.connect(audioCtx.destination);
+
+    ambientSource.connect(ambientFilter);
+    ambientFilter.connect(ambientGain);
+    ambientGain.connect(audioCtx.destination);
     ambientSource.start(0);
   }
+
   function stopAmbientNodes() { if (ambientSource) { try { ambientSource.stop(); ambientSource.disconnect(); } catch (e) {} ambientSource = null; } }
   function toggleAmbient() {
     isAmbientOn = !isAmbientOn;
@@ -899,7 +940,7 @@
   }
   function selectAmbientType(type) {
     ambientType = type;
-    ['brown', 'pink', 'rain'].forEach(t => document.getElementById('snd-' + t).classList.toggle('selected', t === type));
+    ['brown', 'pink', 'white', 'rain'].forEach(t => document.getElementById('snd-' + t).classList.toggle('selected', t === type));
     feedback(1.05, 12);
     if (isAmbientOn) buildAmbientNodes();
   }
@@ -908,7 +949,7 @@
     if (ambientGain && audioCtx) ambientGain.gain.setTargetAtTime(ambientVolume * 0.45, audioCtx.currentTime, 0.03);
   }
 
-  // === 5. CLOUD SYNC ENGINE WITH OFFLINE QUEUE ===
+  // === 5. CLOUD SYNC ENGINE WITH SHEETS SYNC ===
   function updateSyncBadges(statusText, isConnected) {
     const qLen = syncQueue.length;
     const deskLabel = qLen > 0 ? `${statusText} (${qLen} antre)` : statusText;
@@ -927,8 +968,8 @@
   function openSyncModal() {
     document.getElementById('gasUrlInput').value = gasUrl;
     document.getElementById('syncModalMsg').textContent = gasUrl
-      ? `Terhubung ke Google. Antrean offline: ${syncQueue.length} item.`
-      : `Mode Lokal (Offline). Antrean tersimpan di HP: ${syncQueue.length} item.`;
+      ? `Terhubung ke Google Sheets & Calendar. Antrean: ${syncQueue.length} item.`
+      : `Mode Lokal. Antrean tersimpan di HP: ${syncQueue.length} item.`;
     document.getElementById('syncModal').classList.add('open');
   }
   function closeSyncModal() { document.getElementById('syncModal').classList.remove('open'); }
@@ -937,7 +978,7 @@
     const val = document.getElementById('gasUrlInput').value.trim();
     gasUrl = val; localStorage.setItem(GAS_URL_KEY, val);
     if (val) {
-      document.getElementById('syncModalMsg').textContent = 'Menyinkronkan antrean & kalender...';
+      document.getElementById('syncModalMsg').textContent = 'Menyinkronkan ke Google Sheets & Calendar...';
       flushSyncQueue(true);
     } else {
       updateSyncBadges('Local-First Ready', false);
@@ -974,8 +1015,8 @@
         persistLocal();
         populateCalendarDropdowns();
         renderAll();
-        updateSyncBadges('Google Synced', true);
-        document.getElementById('syncModalMsg').textContent = `Tersinkron (${(state.calendars || []).length} kalender aktif)!`;
+        updateSyncBadges('Sheets & Cal Synced', true);
+        document.getElementById('syncModalMsg').textContent = `Tersinkron ke Google Sheets & ${(state.calendars || []).length} kalender!`;
       }
     } catch (e) {
       updateSyncBadges('Offline (Tersimpan)', false);
@@ -1000,7 +1041,7 @@
     }
 
     isFlushing = true;
-    updateSyncBadges('Menyinkronkan...', true);
+    updateSyncBadges('Menyimpan ke Sheets...', true);
 
     try {
       while (syncQueue.length > 0) {
@@ -1022,15 +1063,16 @@
             renderAll();
           }
         } else {
+          document.getElementById('syncModalMsg').textContent = 'Error Sheets: ' + (data.error || 'Unknown');
           break;
         }
       }
       if (syncQueue.length === 0) {
-        updateSyncBadges('Google Synced', true);
-        document.getElementById('syncModalMsg').textContent = 'Semua data tersinkron ke Google!';
+        updateSyncBadges('Sheets & Cal Synced', true);
+        document.getElementById('syncModalMsg').textContent = 'Semua data tersinkron ke Google Sheets & Calendar!';
         if (closeAfter) setTimeout(closeSyncModal, 600);
       } else {
-        updateSyncBadges('Menunggu Sinyal', false);
+        updateSyncBadges('Antre (' + syncQueue.length + ')', false);
       }
     } catch (e) {
       updateSyncBadges('Offline (Tersimpan)', false);
@@ -1236,12 +1278,19 @@
     state.calEvents = (state.calEvents || []).filter(x => x.id !== eventId);
     persistLocal();
     renderCalendar();
-    if (!String(eventId).startsWith('local_')) {
-      enqueueAndSync({ fn: 'deleteCalendarEvent', calId, eventId, anchor: selectedDate });
-    }
+    enqueueAndSync({ fn: 'deleteCalendarEvent', calId, eventId, anchor: selectedDate });
   }
 
   // === 7. RENDER ALL OTHER TABS ===
+  function setTaskFilter(f) {
+    taskFilter = f;
+    ['ALL', 'ACTIVE', 'DONE'].forEach(k => {
+      document.getElementById('tf-' + k).classList.toggle('selected-emerald', k === f);
+    });
+    feedback(1.0, 10);
+    renderAll();
+  }
+
   function renderAll() {
     ensureSevenDayCharts();
     renderCalendar();
@@ -1256,18 +1305,31 @@
       return `<div class="bar-col"><div class="bar-val">${d.mins > 0 ? d.mins + 'm' : ''}</div><div class="bar-track"><div class="bar-fill" style="height:${d.mins > 0 ? Math.max(8, pct) : 0}%;background:${bg}"></div></div><div class="bar-lbl" style="${d.isToday ? 'color:var(--sky);font-weight:700' : ''}">${d.label}</div></div>`;
     }).join('');
 
-    document.getElementById('taskList').innerHTML = (state.tasks || []).map(t => {
+    const allTasks = state.tasks || [];
+    const doneTaskCount = allTasks.filter(t => t.done).length;
+    document.getElementById('taskCounterBadge').textContent = `${doneTaskCount}/${allTasks.length} selesai`;
+
+    const filteredTasks = allTasks.filter(t => {
+      if (taskFilter === 'ACTIVE') return !t.done;
+      if (taskFilter === 'DONE') return t.done;
+      return true;
+    });
+
+    document.getElementById('taskList').innerHTML = filteredTasks.map(t => {
       const rem = t.reminder ? `<span class="badge-due">${t.reminder.replace('T', ' ')}</span>` : '';
       const mailBadge = t.notified ? `<span class="badge-mail">Email Terkirim</span>` : (t.reminder ? `<span class="badge-mail">Auto-Email</span>` : '');
+      const prioBadge = t.priority === 'Penting'
+        ? `<span class="badge-prio-high">Penting</span>`
+        : (t.priority === 'Santai' ? `<span class="badge-prio-low">Santai</span>` : '');
       return `<div class="item-row ${t.done ? 'done' : ''}">
         <div class="check-circle" onclick="handleToggleTask('${t.id}')">${t.done ? '✓' : ''}</div>
-        <div class="item-body" onclick="handleToggleTask('${t.id}')"><div class="item-text">${t.text}</div>${(rem || mailBadge) ? `<div class="item-meta">${rem}${mailBadge}</div>` : ''}</div>
+        <div class="item-body" onclick="handleToggleTask('${t.id}')"><div class="item-text">${t.text}</div>${(prioBadge || rem || mailBadge) ? `<div class="item-meta">${prioBadge}${rem}${mailBadge}</div>` : ''}</div>
         <button class="icon-action" title="Kirim Reminder Email Sekarang" onclick="sendTaskMailNow('${t.id}')">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--sky)" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
         </button>
         <button class="icon-action" onclick="handleDeleteItem('tasks','Tasks','${t.id}')">✕</button>
       </div>`;
-    }).join('') || '<div style="color:var(--muted);font-size:13px">Belum ada tugas aktif.</div>';
+    }).join('') || '<div style="color:var(--muted);font-size:13px">Tidak ada checklist pada filter ini.</div>';
 
     const habits = state.habits || [];
     const doneH = habits.filter(h => h.doneToday).length;
@@ -1308,28 +1370,29 @@
       <div class="item-row"><div class="item-body"><div class="item-meta"><span style="color:var(--amber);font-weight:600">${d.tag}</span></div><div class="item-text">${d.text}</div></div><button class="icon-action" onclick="handleDeleteItem('dumps','BrainDump','${d.id}')">✕</button></div>`).join('') || '<div style="color:var(--muted);font-size:13px">Kepala bersih, belum ada parkir ide.</div>';
   }
 
-  // === 8. LOCAL-FIRST MUTATIONS FOR ALL MODULES ===
+  // === 8. LOCAL-FIRST + GOOGLE SHEETS SYNC MUTATIONS ===
   function submitTask() {
     const inp = document.getElementById('taskInput'), rem = document.getElementById('taskTime');
     const text = inp.value.trim();
     if (!text) return;
     const reminder = rem.value;
+    const priority = document.getElementById('taskPrio').value;
     feedback(1.1, 16);
 
     if (!Array.isArray(state.tasks)) state.tasks = [];
-    state.tasks.push({ id: 'local_t_' + Date.now(), text, reminder, done: false, notified: false });
+    state.tasks.push({ id: 't_' + Date.now(), text, reminder, done: false, notified: false, priority });
     if (reminder) {
       if (!Array.isArray(state.calEvents)) state.calEvents = [];
       state.calEvents.push({
-        id: 'local_ev_t_' + Date.now(), calId: '', calName: 'Deadline Task', color: '#fbbf24', canEdit: true,
-        title: '[Deadline] ' + text, dateKey: reminder.slice(0, 10),
+        id: 'ev_t_' + Date.now(), calId: '', calName: 'To-Do Reminder', color: '#fbbf24', canEdit: true,
+        title: '[To-Do] ' + text, dateKey: reminder.slice(0, 10),
         startStr: reminder.slice(11, 16) || '09:00', endStr: '23:59', isAllDay: false, location: '', description: ''
       });
     }
     persistLocal();
     renderAll();
     inp.value = ''; rem.value = '';
-    enqueueAndSync({ fn: 'addTask', text, reminder, syncCal: true });
+    enqueueAndSync({ fn: 'addTask', text, reminder, syncCal: true, priority });
   }
 
   function handleToggleTask(id) {
@@ -1338,9 +1401,7 @@
     if (t) t.done = !t.done;
     persistLocal();
     renderAll();
-    if (!String(id).startsWith('local_')) {
-      enqueueAndSync({ fn: 'toggleTask', id });
-    }
+    enqueueAndSync({ fn: 'toggleTask', id });
   }
 
   function sendTaskMailNow(id) {
@@ -1351,7 +1412,7 @@
     persistLocal();
     renderAll();
     enqueueAndSync({ fn: 'sendManualTaskReminder', id });
-    alert('Permintaan kirim email pengingat tugas diproses!');
+    alert('Pengingat email untuk tugas ini telah dikirim ke Gmail-mu!');
   }
 
   function submitHabit() {
@@ -1360,7 +1421,7 @@
     if (!name) return;
     feedback(1.1, 16);
     if (!Array.isArray(state.habits)) state.habits = [];
-    state.habits.push({ id: 'local_h_' + Date.now(), name, streak: 0, doneToday: false, lastDone: '' });
+    state.habits.push({ id: 'h_' + Date.now(), name, streak: 0, doneToday: false, lastDone: '' });
     persistLocal();
     renderAll();
     inp.value = '';
@@ -1381,9 +1442,7 @@
     }
     persistLocal();
     renderAll();
-    if (!String(id).startsWith('local_')) {
-      enqueueAndSync({ fn: 'toggleHabit', id });
-    }
+    enqueueAndSync({ fn: 'toggleHabit', id });
   }
 
   function submitFin() {
@@ -1400,7 +1459,7 @@
     if (!Array.isArray(state.finance.byCategory)) state.finance.byCategory = [];
 
     state.finance.items.unshift({
-      id: 'local_f_' + Date.now(), date: today, type, category, amount: amt, note
+      id: 'f_' + Date.now(), date: today, type, category, amount: amt, note
     });
     if (type === 'Masuk') {
       state.finance.income = Number(state.finance.income || 0) + amt;
@@ -1440,9 +1499,7 @@
     }
     persistLocal();
     renderAll();
-    if (!String(id).startsWith('local_')) {
-      enqueueAndSync({ fn: 'deleteRowById', sheetName: 'Finance', id });
-    }
+    enqueueAndSync({ fn: 'deleteRowById', sheetName: 'Finance', id });
   }
 
   function submitNote() {
@@ -1458,12 +1515,12 @@
       const existing = state.notes.find(x => x.id === id);
       if (existing) { existing.title = title || 'Tanpa Judul'; existing.body = body; existing.updated = stamp; }
     } else {
-      state.notes.unshift({ id: 'local_n_' + Date.now(), title: title || 'Tanpa Judul', body, updated: stamp });
+      state.notes.unshift({ id: 'n_' + Date.now(), title: title || 'Tanpa Judul', body, updated: stamp });
     }
     persistLocal();
     clearNoteForm();
     renderAll();
-    enqueueAndSync({ fn: 'saveNote', id: String(id).startsWith('local_') ? '' : id, title, body });
+    enqueueAndSync({ fn: 'saveNote', id, title, body });
   }
 
   function editNote(id) {
@@ -1484,7 +1541,7 @@
     feedback(1.1, 16);
 
     if (!Array.isArray(state.dumps)) state.dumps = [];
-    state.dumps.unshift({ id: 'local_d_' + Date.now(), tag, text });
+    state.dumps.unshift({ id: 'd_' + Date.now(), tag, text });
     persistLocal();
     renderAll();
     inp.value = '';
@@ -1498,9 +1555,7 @@
     }
     persistLocal();
     renderAll();
-    if (!String(id).startsWith('local_')) {
-      enqueueAndSync({ fn: 'deleteRowById', sheetName, id });
-    }
+    enqueueAndSync({ fn: 'deleteRowById', sheetName, id });
   }
 
   function switchTab(name) {
@@ -1588,7 +1643,7 @@
     }
   }
 
-  // === 9. FIDGET INITIALIZATION (BUBBLES + DRAGGABLE TAPTIC SLIDER + PULSE PAD) ===
+  // === 9. FIDGET INITIALIZATION ===
   const grid = document.getElementById('bubbleGrid');
   for (let i = 0; i < 16; i++) {
     const wrap = document.createElement('div');
