@@ -9,7 +9,7 @@
 <meta id="metaThemeColor" name="theme-color" content="#0b0f17">
 <link id="appleTouchIcon" rel="apple-touch-icon" sizes="180x180">
 <link id="appManifest" rel="manifest">
-<title>TenangFokus v.3.2 by rudymuda</title>
+<title>TenangFokus v.3.3 by rudymuda</title>
 <style>
   :root {
     --bg: #0b0f17; --surface: #131a26; --surface-2: #1c2536; --border: #273349;
@@ -288,7 +288,7 @@
         <div class="brand-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg></div>
         <div>
           TenangFokus
-          <span class="brand-sub">v.3.2 by rudymuda</span>
+          <span class="brand-sub">v.3.3 by rudymuda</span>
         </div>
       </div>
       <div class="side-menu">
@@ -340,7 +340,7 @@
         <div class="brand-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg></div>
         <div>
           TenangFokus
-          <span class="brand-sub">v.3.2 by rudymuda</span>
+          <span class="brand-sub">v.3.3 by rudymuda</span>
         </div>
       </div>
       <div class="row" style="gap:5px">
@@ -655,7 +655,7 @@
       </div>
     </div>
 
-    <div class="mobile-footer-credit">TenangFokus v.3.2 by rudymuda</div>
+    <div class="mobile-footer-credit">TenangFokus v.3.3 by rudymuda</div>
   </main>
 
   <nav class="bottom-nav">
@@ -769,8 +769,8 @@
   }
 
   // === 3. LOCAL-FIRST STATE & SHEETS SYNC QUEUE ===
-  const STORAGE_KEY = 'tenangfokus_v32_rudymuda';
-  const QUEUE_KEY = 'tenangfokus_sync_queue_v32';
+  const STORAGE_KEY = 'tenangfokus_v33_rudymuda';
+  const QUEUE_KEY = 'tenangfokus_sync_queue_v33';
   const GAS_URL_KEY = 'tenangfokus_gas_url';
   let gasUrl = localStorage.getItem(GAS_URL_KEY) || '';
   let syncQueue = [];
@@ -949,7 +949,41 @@
     if (ambientGain && audioCtx) ambientGain.gain.setTargetAtTime(ambientVolume * 0.45, audioCtx.currentTime, 0.03);
   }
 
-  // === 5. CLOUD SYNC ENGINE WITH SHEETS SYNC ===
+  // === 5. JSONP CLOUD SYNC ENGINE (SAFARI iOS & PWA ANTI-CORS) ===
+  function gasJsonpRequest(paramsObj) {
+    return new Promise((resolve, reject) => {
+      if (!gasUrl) return reject(new Error('URL belum diatur'));
+      const cbName = 'tf_cb_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
+      const script = document.createElement('script');
+      const timer = setTimeout(() => {
+        cleanup();
+        reject(new Error('Timeout koneksi ke Google'));
+      }, 15000);
+
+      function cleanup() {
+        clearTimeout(timer);
+        delete window[cbName];
+        if (script.parentNode) script.parentNode.removeChild(script);
+      }
+
+      window[cbName] = (data) => {
+        cleanup();
+        resolve(data);
+      };
+
+      const sep = gasUrl.includes('?') ? '&' : '?';
+      const query = Object.keys(paramsObj)
+        .map(k => `${encodeURIComponent(k)}=${encodeURIComponent(paramsObj[k])}`)
+        .join('&');
+      script.src = `${gasUrl}${sep}${query}&callback=${cbName}&_t=${Date.now()}`;
+      script.onerror = () => {
+        cleanup();
+        reject(new Error('Gagal memuat skrip Google Apps Script'));
+      };
+      document.body.appendChild(script);
+    });
+  }
+
   function updateSyncBadges(statusText, isConnected) {
     const qLen = syncQueue.length;
     const deskLabel = qLen > 0 ? `${statusText} (${qLen} antre)` : statusText;
@@ -990,25 +1024,18 @@
     feedback(1.1, 16);
     document.getElementById('syncModalMsg').textContent = 'Mengirim email ke Gmail...';
     try {
-      const sep = gasUrl.includes('?') ? '&' : '?';
-      const res = await fetch(`${gasUrl}${sep}action=${actionType}`, { method: 'GET', redirect: 'follow' });
-      const data = await res.json();
+      const data = await gasJsonpRequest({ action: actionType });
       document.getElementById('syncModalMsg').textContent = data.msg || 'Email terkirim!';
     } catch (e) {
-      document.getElementById('syncModalMsg').textContent = 'Offline / gagal mengirim email.';
+      document.getElementById('syncModalMsg').textContent = 'Gagal mengirim email: ' + e.message;
     }
   }
 
   async function apiGet(anchor) {
     if (!gasUrl) { updateSyncBadges('Local-First Ready', false); return; }
-    if (!navigator.onLine) { updateSyncBadges('Offline (Tersimpan)', false); return; }
     updateSyncBadges('Syncing...', true);
     try {
-      const sep = gasUrl.includes('?') ? '&' : '?';
-      const res = await fetch(`${gasUrl}${sep}action=getAllData&anchor=${encodeURIComponent(anchor || selectedDate)}`, {
-        method: 'GET', redirect: 'follow'
-      });
-      const data = await res.json();
+      const data = await gasJsonpRequest({ action: 'getAllData', anchor: anchor || selectedDate });
       if (data && !data.error) {
         state = data;
         ensureSevenDayCharts();
@@ -1017,9 +1044,13 @@
         renderAll();
         updateSyncBadges('Sheets & Cal Synced', true);
         document.getElementById('syncModalMsg').textContent = `Tersinkron ke Google Sheets & ${(state.calendars || []).length} kalender!`;
+      } else {
+        updateSyncBadges('Error Server', false);
+        document.getElementById('syncModalMsg').textContent = 'Error GAS: ' + (data.error || 'Unknown');
       }
     } catch (e) {
-      updateSyncBadges('Offline (Tersimpan)', false);
+      updateSyncBadges('Gagal Sync', false);
+      document.getElementById('syncModalMsg').textContent = e.message;
     }
   }
 
@@ -1032,7 +1063,6 @@
   let isFlushing = false;
   async function flushSyncQueue(closeAfter) {
     if (!gasUrl) { updateSyncBadges('Local-First Ready', false); return; }
-    if (!navigator.onLine) { updateSyncBadges('Offline (Tersimpan)', false); return; }
     if (isFlushing) return;
     if (syncQueue.length === 0) {
       await apiGet(selectedDate);
@@ -1046,12 +1076,7 @@
     try {
       while (syncQueue.length > 0) {
         const nextItem = syncQueue[0];
-        const sep = gasUrl.includes('?') ? '&' : '?';
-        const encoded = encodeURIComponent(JSON.stringify(nextItem));
-        const res = await fetch(`${gasUrl}${sep}action=post&data=${encoded}`, {
-          method: 'GET', redirect: 'follow'
-        });
-        const data = await res.json();
+        const data = await gasJsonpRequest({ action: 'post', data: JSON.stringify(nextItem) });
         if (data && !data.error) {
           syncQueue.shift();
           persistQueue();
@@ -1075,13 +1100,24 @@
         updateSyncBadges('Antre (' + syncQueue.length + ')', false);
       }
     } catch (e) {
-      updateSyncBadges('Offline (Tersimpan)', false);
+      updateSyncBadges('Gagal Sync', false);
+      document.getElementById('syncModalMsg').textContent = e.message;
     } finally {
       isFlushing = false;
     }
   }
 
   window.addEventListener('online', () => flushSyncQueue(false));
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      const todayNow = getLocalTodayKey();
+      if (selectedDate !== todayNow && loadedMonth === todayNow.slice(0, 7)) {
+        selectedDate = todayNow;
+        renderCalendar();
+      }
+      if (gasUrl) flushSyncQueue(false);
+    }
+  });
 
   function populateCalendarDropdowns() {
     const cals = state.calendars || [];
