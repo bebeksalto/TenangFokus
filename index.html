@@ -9,7 +9,7 @@
 <meta id="metaThemeColor" name="theme-color" content="#0b0f17">
 <link id="appleTouchIcon" rel="apple-touch-icon" sizes="180x180">
 <link id="appManifest" rel="manifest">
-<title>TenangFokus v.3.3 by rudymuda</title>
+<title>TenangFokus v.3.4 by rudymuda</title>
 <style>
   :root {
     --bg: #0b0f17; --surface: #131a26; --surface-2: #1c2536; --border: #273349;
@@ -47,20 +47,21 @@
   .app-shell { min-height: 100vh; padding: 14px 16px 96px; }
   .sidebar { display: none; }
   .mobile-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; gap: 6px; }
-  .brand { display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 700; }
-  .brand-sub { font-size: 10px; color: var(--muted); font-weight: 500; display: block; line-height: 1.1; }
-  .brand-icon { width: 30px; height: 30px; border-radius: 9px; background: linear-gradient(135deg, var(--sky), var(--indigo)); display: flex; align-items: center; justify-content: center; color: #ffffff; flex-shrink: 0; }
-  .status-pill { background: var(--surface); border: 1px solid var(--border); color: var(--muted); border-radius: 999px; padding: 6px 10px; font-size: 11px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; user-select: none; box-shadow: var(--shadow); }
+  .brand { display: flex; align-items: center; gap: 10px; font-size: 16px; font-weight: 700; }
+  .brand-sub { font-size: 10px; color: var(--muted); font-weight: 500; display: block; line-height: 1.2; }
+  .brand-icon { width: 32px; height: 32px; border-radius: 10px; background: linear-gradient(135deg, var(--sky), var(--indigo)); display: flex; align-items: center; justify-content: center; color: #ffffff; flex-shrink: 0; }
+  .status-pill { background: var(--surface); border: 1px solid var(--border); color: var(--muted); border-radius: 999px; padding: 6px 10px; font-size: 11px; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; cursor: pointer; user-select: none; box-shadow: var(--shadow); }
   .status-pill.active { border-color: var(--emerald); color: var(--emerald); background: var(--emerald-bg); }
   .status-pill.warn { border-color: var(--amber); color: var(--amber); background: var(--amber-bg); }
-  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--amber); }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--amber); flex-shrink: 0; }
   .status-pill.active .dot { background: var(--emerald); }
 
   .view { display: none; }
   .view.active { display: block; }
 
+  /* MOBILE BOTTOM NAV (7 COMPACT TABS) */
   .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--nav-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-top: 1px solid var(--border); display: flex; padding: 6px 2px calc(6px + env(safe-area-inset-bottom)); z-index: 30; }
-  .bottom-nav button { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 10px; font-weight: 600; background: transparent; color: var(--muted); border-radius: 10px; padding: 6px 2px; min-height: 52px; }
+  .bottom-nav button { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 9.5px; font-weight: 600; background: transparent; color: var(--muted); border-radius: 10px; padding: 6px 1px; min-height: 52px; border: none; }
   .bottom-nav button.active[data-color="sky"] { color: var(--sky); }
   .bottom-nav button.active[data-color="indigo"] { color: var(--indigo); }
   .bottom-nav button.active[data-color="emerald"] { color: var(--emerald); }
@@ -72,10 +73,17 @@
 
   @media (min-width: 860px) {
     .mobile-header, .bottom-nav, .mobile-footer-credit { display: none; }
-    .app-shell { display: grid; grid-template-columns: 250px 1fr; padding: 0; }
-    .sidebar { display: flex; flex-direction: column; justify-content: space-between; background: var(--surface); border-right: 1px solid var(--border); padding: 24px 16px; position: sticky; top: 0; height: 100vh; }
-    .side-menu { display: flex; flex-direction: column; gap: 6px; margin-top: 24px; }
-    .side-btn { justify-content: flex-start; padding: 12px 14px; border-radius: 14px; background: transparent; color: var(--muted); font-size: 14px; font-weight: 600; }
+    .app-shell { display: grid; grid-template-columns: 264px 1fr; padding: 0; }
+    .sidebar { display: flex; flex-direction: column; justify-content: space-between; background: var(--surface); border-right: 1px solid var(--border); padding: 20px 14px; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+    .nav-group-label { font-size: 10px; font-weight: 700; letter-spacing: .8px; color: var(--muted); text-transform: uppercase; padding: 14px 12px 4px; opacity: .75; }
+    .side-menu { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; }
+    .side-btn {
+      width: 100%; display: flex; align-items: center; justify-content: flex-start !important;
+      text-align: left !important; padding: 10px 12px; border-radius: 12px; min-height: 42px;
+      background: transparent; color: var(--muted); font-size: 13.5px; font-weight: 600;
+      gap: 11px; white-space: nowrap; border: none; transition: background .15s, color .15s;
+    }
+    .side-btn svg { flex-shrink: 0; }
     .side-btn:hover { background: var(--surface-2); color: var(--text); }
     .side-btn.active[data-color="sky"] { background: var(--sky-bg); color: var(--sky); }
     .side-btn.active[data-color="indigo"] { background: var(--indigo-bg); color: var(--indigo); }
@@ -83,11 +91,34 @@
     .side-btn.active[data-color="amber"] { background: var(--amber-bg); color: var(--amber); }
     .side-btn.active[data-color="violet"] { background: var(--violet-bg); color: var(--violet); }
     .side-btn.active[data-color="rose"] { background: var(--rose-bg); color: var(--rose); }
-    .main-content { padding: 28px 32px; max-width: 1220px; width: 100%; margin: 0 auto; }
+
+    .sidebar-summary {
+      background: var(--surface-2); border: 1px solid var(--border); border-radius: 14px;
+      padding: 12px; margin: 12px 0; font-size: 12px;
+    }
+    .sidebar-footer { display: flex; flex-direction: column; gap: 6px; padding-top: 10px; border-top: 1px solid var(--border); }
+    .sidebar-footer-row { display: flex; gap: 6px; }
+    .sidebar-footer .status-pill { flex: 1; justify-content: center; border-radius: 12px; padding: 8px 10px; }
+
+    .main-content { padding: 26px 32px; max-width: 1260px; width: 100%; margin: 0 auto; }
     .desktop-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
     .desktop-grid-cal { display: grid; grid-template-columns: 1.35fr 1fr; gap: 16px; align-items: start; }
     .desktop-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; align-items: start; }
+    .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
   }
+
+  @media (max-width: 859px) {
+    .kpi-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 14px; }
+  }
+
+  .kpi-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+    padding: 14px; box-shadow: var(--shadow); cursor: pointer; transition: transform .1s;
+  }
+  .kpi-card:active { transform: scale(.98); }
+  .kpi-label { font-size: 11px; font-weight: 600; color: var(--muted); display: flex; justify-content: space-between; align-items: center; }
+  .kpi-val { font-size: 20px; font-weight: 700; margin-top: 4px; }
+  .kpi-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
 
   .card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 18px; margin-bottom: 14px; position: relative; overflow: hidden; box-shadow: var(--shadow); }
   .card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--card-accent, var(--sky)); }
@@ -113,7 +144,7 @@
   button.chip.selected { background: var(--sky-bg); color: var(--sky); border-color: var(--sky); }
   button.chip.selected-indigo { background: var(--indigo-bg); color: var(--indigo); border-color: var(--indigo); }
   button.chip.selected-emerald { background: var(--emerald-bg); color: var(--emerald); border-color: var(--emerald); }
-  .bottom-nav button, .side-btn, .icon-action { border: none; }
+  .icon-action { border: none; }
 
   input, select, textarea { width: 100%; background: var(--surface-2); color: var(--text); border: 1px solid var(--border); border-radius: 14px; padding: 11px 14px; font-size: 16px; outline: none; font-family: inherit; }
   input:focus, select:focus, textarea:focus { border-color: var(--indigo); background: var(--surface); }
@@ -258,7 +289,7 @@
 <div class="modal-backdrop" id="syncModal">
   <div class="modal-box">
     <div class="card-title">
-      <span>KONEKSI GOOGLE SHEETS & CALENDAR</span>
+      <span>KONEKSI GOOGLE & BACKUP</span>
       <button class="chip" onclick="closeSyncModal()">Tutup</button>
     </div>
     <p style="font-size:12px;color:var(--muted);margin:0 0 10px">
@@ -267,68 +298,95 @@
     <input id="gasUrlInput" placeholder="https://script.google.com/macros/s/.../exec" style="margin-bottom:10px">
     <div class="row" style="margin-bottom:10px">
       <button class="btn-indigo" style="flex:2" onclick="saveGasUrl()">Hubungkan & Sync</button>
-      <button style="flex:1" onclick="flushSyncQueue(true)">Sync Sekarang</button>
+      <button style="flex:1" onclick="flushSyncQueue(true)">Refresh</button>
     </div>
     <div style="border-top:1px solid var(--border);padding-top:10px;margin-top:6px">
-      <div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:8px">KIRIM EMAIL RINGKASAN MANUAL SEKARANG</div>
-      <div class="row">
+      <div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:8px">EMAIL RINGKASAN & BACKUP DATA</div>
+      <div class="row" style="margin-bottom:8px">
         <button style="flex:1;font-size:12px" onclick="triggerManualEmail('briefing')">Briefing Besok</button>
         <button style="flex:1;font-size:12px" onclick="triggerManualEmail('weekly')">Evaluasi Sabtu</button>
       </div>
+      <button style="width:100%;font-size:12px" onclick="exportBackupJSON()">Unduh Backup JSON Lokal</button>
     </div>
     <div id="syncModalMsg" style="font-size:11px;color:var(--emerald);margin-top:8px"></div>
   </div>
 </div>
 
 <div class="app-shell">
-  <!-- DESKTOP SIDEBAR -->
+  <!-- DESKTOP SIDEBAR (RAPI, RATA KIRI, LENGKAP) -->
   <aside class="sidebar">
     <div>
-      <div class="brand">
+      <div class="brand" style="padding: 2px 6px 8px">
         <div class="brand-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg></div>
         <div>
           TenangFokus
-          <span class="brand-sub">v.3.3 by rudymuda</span>
+          <span class="brand-sub">v.3.4 by rudymuda</span>
         </div>
       </div>
+
+      <div class="nav-group-label">Utama</div>
       <div class="side-menu">
-        <button class="side-btn active" data-tab="cal" data-color="indigo" onclick="switchTab('cal')">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-          Google Calendar
+        <button class="side-btn active" data-tab="home" data-color="sky" onclick="switchTab('home')">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+          <span>Dashboard Hari Ini</span>
+        </button>
+        <button class="side-btn" data-tab="cal" data-color="indigo" onclick="switchTab('cal')">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <span>Google Calendar</span>
         </button>
         <button class="side-btn" data-tab="focus" data-color="sky" onclick="switchTab('focus')">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
-          Fokus & To-Do Checklist
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
+          <span>Fokus & To-Do List</span>
         </button>
         <button class="side-btn" data-tab="habit" data-color="emerald" onclick="switchTab('habit')">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-          Habit Tracker
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          <span>Habit Tracker</span>
         </button>
+      </div>
+
+      <div class="nav-group-label">Keuangan & Utilitas</div>
+      <div class="side-menu">
         <button class="side-btn" data-tab="money" data-color="amber" onclick="switchTab('money')">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2.5"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
-          Money Tracker
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2.5"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+          <span>Money Tracker</span>
         </button>
         <button class="side-btn" data-tab="notes" data-color="violet" onclick="switchTab('notes')">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-          Notes & Brain Dump
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <span>Notes & Brain Dump</span>
         </button>
         <button class="side-btn" data-tab="fidget" data-color="rose" onclick="switchTab('fidget')">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg>
-          Fidget & Napas
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg>
+          <span>Fidget & Napas</span>
         </button>
       </div>
     </div>
+
     <div>
-      <div class="status-pill" style="width:100%;justify-content:center;margin-bottom:8px" onclick="toggleTheme()">
-        <span id="themeIconDesk">☀️</span>
-        <span id="themeTextDesk">Bright Mode</span>
+      <div class="sidebar-summary">
+        <div style="display:flex;justify-content:space-between;color:var(--muted);font-size:11px;margin-bottom:4px">
+          <span>Fokus Hari Ini</span>
+          <strong id="sideFocusMins" style="color:var(--sky)">0 mnt</strong>
+        </div>
+        <div style="display:flex;justify-content:space-between;color:var(--muted);font-size:11px">
+          <span>Habit Selesai</span>
+          <strong id="sideHabitStat" style="color:var(--emerald)">0/0</strong>
+        </div>
       </div>
-      <div class="status-pill" style="width:100%;justify-content:center;margin-bottom:8px" id="syncBadgeDesk" onclick="openSyncModal()">
-        <span class="dot"></span>
-        <span id="syncTextDesk">Local-First Ready</span>
-      </div>
-      <div class="status-pill" style="width:100%;justify-content:center" id="wakeBtnDesk" onclick="toggleWakeLock()">
-        <span id="wakeTextDesk">Layar: Auto</span>
+
+      <div class="sidebar-footer">
+        <div class="status-pill" style="width:100%;justify-content:center;border-radius:12px;padding:8px" id="syncBadgeDesk" onclick="openSyncModal()">
+          <span class="dot"></span>
+          <span id="syncTextDesk">Local-First Ready</span>
+        </div>
+        <div class="sidebar-footer-row">
+          <div class="status-pill" onclick="toggleTheme()">
+            <span id="themeIconDesk">☀️</span>
+            <span id="themeTextDesk">Bright</span>
+          </div>
+          <div class="status-pill" id="wakeBtnDesk" onclick="toggleWakeLock()">
+            <span id="wakeTextDesk">Layar: Auto</span>
+          </div>
+        </div>
       </div>
     </div>
   </aside>
@@ -340,7 +398,7 @@
         <div class="brand-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg></div>
         <div>
           TenangFokus
-          <span class="brand-sub">v.3.3 by rudymuda</span>
+          <span class="brand-sub">v.3.4 by rudymuda</span>
         </div>
       </div>
       <div class="row" style="gap:5px">
@@ -355,8 +413,64 @@
       </div>
     </header>
 
+    <!-- TAB 0: DASHBOARD HARI INI (BERANDA RINGKAS) -->
+    <div id="tab-home" class="view active">
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+        <div>
+          <div id="greetingText" style="font-size:20px;font-weight:700">Selamat Datang</div>
+          <div id="todayFullDate" style="font-size:12px;color:var(--muted)">Ringkasan produktivitas hari ini</div>
+        </div>
+        <button class="chip" onclick="flushSyncQueue(false)">↻ Sync Data</button>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi-card" onclick="switchTab('cal')">
+          <div class="kpi-label"><span>Agenda Hari Ini</span><span style="color:var(--indigo)">●</span></div>
+          <div class="kpi-val" id="kpiAgenda" style="color:var(--indigo)">0 acara</div>
+          <div class="kpi-sub" id="kpiNextEvent">Tidak ada jadwal</div>
+        </div>
+        <div class="kpi-card" onclick="switchTab('focus')">
+          <div class="kpi-label"><span>To-Do Aktif</span><span style="color:var(--sky)">●</span></div>
+          <div class="kpi-val" id="kpiTasks" style="color:var(--sky)">0 tugas</div>
+          <div class="kpi-sub" id="kpiFocusToday">Fokus: 0 mnt</div>
+        </div>
+        <div class="kpi-card" onclick="switchTab('habit')">
+          <div class="kpi-label"><span>Habit Harian</span><span style="color:var(--emerald)">●</span></div>
+          <div class="kpi-val" id="kpiHabits" style="color:var(--emerald)">0/0</div>
+          <div class="kpi-sub">Konsistensi hari ini</div>
+        </div>
+        <div class="kpi-card" onclick="switchTab('money')">
+          <div class="kpi-label"><span>Saldo Bulan Ini</span><span style="color:var(--amber)">●</span></div>
+          <div class="kpi-val" id="kpiMoney" style="color:var(--amber);font-size:17px">Rp 0</div>
+          <div class="kpi-sub" id="kpiBudgetSub">Pengeluaran: Rp 0</div>
+        </div>
+      </div>
+
+      <div class="desktop-grid-2">
+        <div class="card accent-indigo">
+          <div class="card-title">
+            <span>JADWAL HARI INI</span>
+            <button class="chip" onclick="switchTab('cal')">Buka Kalender →</button>
+          </div>
+          <div id="homeAgendaPreview"></div>
+        </div>
+
+        <div class="card accent-emerald">
+          <div class="card-title">
+            <span>QUICK CAPTURE & PRIORITAS</span>
+            <button class="chip" onclick="switchTab('focus')">Semua Tugas →</button>
+          </div>
+          <div class="row" style="margin-bottom:12px">
+            <input id="quickTaskInput" placeholder="Tambah tugas cepat hari ini...">
+            <button class="btn-emerald" style="flex:0 0 84px" onclick="submitQuickTask()">+ Tambah</button>
+          </div>
+          <div id="homeTaskPreview"></div>
+        </div>
+      </div>
+    </div>
+
     <!-- TAB 1: GOOGLE CALENDAR -->
-    <div id="tab-cal" class="view active">
+    <div id="tab-cal" class="view">
       <div class="desktop-grid-cal">
         <div>
           <div class="card accent-indigo">
@@ -438,7 +552,7 @@
       </div>
     </div>
 
-    <!-- TAB 2: FOKUS, AMBIENT SOUND (BROWN/PINK/WHITE/RAIN) & TO-DO CHECKLIST REMINDER -->
+    <!-- TAB 2: FOKUS & TO-DO CHECKLIST REMINDER -->
     <div id="tab-focus" class="view">
       <div class="desktop-grid-2">
         <div>
@@ -483,7 +597,6 @@
           </div>
         </div>
 
-        <!-- TO-DO LIST, CHECKLIST & REMINDER -->
         <div class="card accent-emerald">
           <div class="card-title">
             <span>TO-DO CHECKLIST & REMINDER</span>
@@ -529,26 +642,43 @@
       </div>
     </div>
 
-    <!-- TAB 4: MONEY -->
+    <!-- TAB 4: MONEY + MONTHLY BUDGET TRACKER -->
     <div id="tab-money" class="view">
       <div class="desktop-grid-2">
         <div>
           <div class="card accent-amber">
-            <div class="card-title"><span>RINGKASAN BULAN INI</span></div>
+            <div class="card-title"><span>RINGKASAN & ANGGARAN BULAN INI</span></div>
             <div class="stat-box" style="margin-bottom:8px">
               <div class="stat-label">Saldo Bersih Bulan Ini</div>
               <div class="stat-val" id="finBalance" style="font-size:24px;color:var(--sky)">Rp 0</div>
             </div>
-            <div class="row">
+            <div class="row" style="margin-bottom:10px">
               <div class="stat-box" style="flex:1"><div class="stat-label">Pemasukan</div><div class="stat-val" id="finIn" style="color:var(--emerald)">Rp 0</div></div>
               <div class="stat-box" style="flex:1"><div class="stat-label">Pengeluaran</div><div class="stat-val" id="finOut" style="color:var(--rose)">Rp 0</div></div>
             </div>
+
+            <!-- MONTHLY BUDGET INDICATOR -->
+            <div class="stat-box">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+                <span class="stat-label" style="margin:0">Batas Anggaran Bulanan</span>
+                <button class="chip" style="min-height:26px;padding:2px 9px;font-size:11px" onclick="setMonthlyBudget()">Atur Limit</button>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px">
+                <span id="budgetUsedLabel">Terpakai: Rp 0</span>
+                <strong id="budgetLimitLabel" style="color:var(--amber)">Belum diatur</strong>
+              </div>
+              <div class="cat-track">
+                <div class="cat-fill" id="budgetBarFill" style="width:0%;background:var(--emerald)"></div>
+              </div>
+            </div>
           </div>
+
           <div class="card accent-rose">
             <div class="card-title"><span>GRAFIK PENGELUARAN PER KATEGORI</span></div>
             <div class="cat-chart" id="finCatChart"></div>
           </div>
         </div>
+
         <div>
           <div class="card accent-amber">
             <div class="card-title"><span>CATAT TRANSAKSI CEPAT</span></div>
@@ -655,32 +785,36 @@
       </div>
     </div>
 
-    <div class="mobile-footer-credit">TenangFokus v.3.3 by rudymuda</div>
+    <div class="mobile-footer-credit">TenangFokus v.3.4 by rudymuda</div>
   </main>
 
   <nav class="bottom-nav">
-    <button class="active" data-tab="cal" data-color="indigo" onclick="switchTab('cal')">
-      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-      Kalender
+    <button class="active" data-tab="home" data-color="sky" onclick="switchTab('home')">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+      Home
+    </button>
+    <button data-tab="cal" data-color="indigo" onclick="switchTab('cal')">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Jadwal
     </button>
     <button data-tab="focus" data-color="sky" onclick="switchTab('focus')">
-      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
       Fokus
     </button>
     <button data-tab="habit" data-color="emerald" onclick="switchTab('habit')">
-      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
       Habit
     </button>
     <button data-tab="money" data-color="amber" onclick="switchTab('money')">
-      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2.5"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2.5"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
       Uang
     </button>
     <button data-tab="notes" data-color="violet" onclick="switchTab('notes')">
-      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
       Notes
     </button>
     <button data-tab="fidget" data-color="rose" onclick="switchTab('fidget')">
-      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg>
       Fidget
     </button>
   </nav>
@@ -693,7 +827,7 @@
     const isLight = mode === 'light';
     document.body.classList.toggle('light-mode', isLight);
     document.getElementById('themeIconDesk').textContent = isLight ? '🌙' : '☀️';
-    document.getElementById('themeTextDesk').textContent = isLight ? 'Dark Mode' : 'Bright Mode';
+    document.getElementById('themeTextDesk').textContent = isLight ? 'Dark' : 'Bright';
     document.getElementById('themeBtnMob').textContent = isLight ? '🌙' : '☀️';
     document.getElementById('metaThemeColor').setAttribute('content', isLight ? '#f1f5f9' : '#0b0f17');
     document.getElementById('iosStatusBar').setAttribute('content', isLight ? 'default' : 'black-translucent');
@@ -769,10 +903,12 @@
   }
 
   // === 3. LOCAL-FIRST STATE & SHEETS SYNC QUEUE ===
-  const STORAGE_KEY = 'tenangfokus_v33_rudymuda';
-  const QUEUE_KEY = 'tenangfokus_sync_queue_v33';
+  const STORAGE_KEY = 'tenangfokus_v34_rudymuda';
+  const QUEUE_KEY = 'tenangfokus_sync_queue_v34';
   const GAS_URL_KEY = 'tenangfokus_gas_url';
+  const BUDGET_KEY = 'tenangfokus_monthly_budget';
   let gasUrl = localStorage.getItem(GAS_URL_KEY) || '';
+  let monthlyBudget = Number(localStorage.getItem(BUDGET_KEY) || 0);
   let syncQueue = [];
   let taskFilter = 'ALL';
 
@@ -832,7 +968,7 @@
   let loadedMonth = selectedDate.slice(0, 7);
   let targetMins = 15, timerSec = 900, timerInterval = null, breathInterval = null, wakeLock = null, tapTotal = 0;
 
-  // === 4. ZERO-LATENCY WEB AUDIO ENGINE (BROWN / PINK / WHITE NOISE / RAIN) ===
+  // === 4. ZERO-LATENCY WEB AUDIO ENGINE ===
   let audioCtx = null, clickBuffer = null, ambientSource = null, ambientFilter = null, ambientGain = null;
   let isAmbientOn = false, ambientType = 'brown', ambientVolume = 0.40, clickSoundOn = true;
 
@@ -900,9 +1036,7 @@
         out[i] = (b0+b1+b2+b3+b4+b5+b6+w*0.5362)*0.11; b6 = w*0.115926;
       }
     } else if (ambientType === 'white') {
-      for (let i = 0; i < bufferSize; i++) {
-        out[i] = (Math.random() * 2 - 1) * 0.28;
-      }
+      for (let i = 0; i < bufferSize; i++) out[i] = (Math.random() * 2 - 1) * 0.28;
     } else {
       let b0=0,b1=0,b2=0;
       for (let i = 0; i < bufferSize; i++) {
@@ -949,7 +1083,7 @@
     if (ambientGain && audioCtx) ambientGain.gain.setTargetAtTime(ambientVolume * 0.45, audioCtx.currentTime, 0.03);
   }
 
-  // === 5. JSONP CLOUD SYNC ENGINE (SAFARI iOS & PWA ANTI-CORS) ===
+  // === 5. JSONP CLOUD SYNC ENGINE ===
   function gasJsonpRequest(paramsObj) {
     return new Promise((resolve, reject) => {
       if (!gasUrl) return reject(new Error('URL belum diatur'));
@@ -1017,6 +1151,14 @@
     } else {
       updateSyncBadges('Local-First Ready', false);
     }
+  }
+
+  function exportBackupJSON() {
+    const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `TenangFokus_Backup_${getLocalTodayKey()}.json`;
+    a.click();
   }
 
   async function triggerManualEmail(actionType) {
@@ -1113,7 +1255,7 @@
       const todayNow = getLocalTodayKey();
       if (selectedDate !== todayNow && loadedMonth === todayNow.slice(0, 7)) {
         selectedDate = todayNow;
-        renderCalendar();
+        renderAll();
       }
       if (gasUrl) flushSyncQueue(false);
     }
@@ -1135,7 +1277,74 @@
 
   function rupiah(n) { return 'Rp ' + Number(n || 0).toLocaleString('id-ID'); }
 
-  // === 6. CALENDAR RENDERING & LOCAL-FIRST MUTATIONS ===
+  // === 6. DASHBOARD HOME RENDERING ===
+  function renderHomeDashboard() {
+    const now = new Date();
+    const hr = now.getHours();
+    const greet = hr < 11 ? 'Selamat Pagi' : (hr < 15 ? 'Selamat Siang' : (hr < 19 ? 'Selamat Sore' : 'Selamat Malam'));
+    const daysFull = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+    const months = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+    document.getElementById('greetingText').textContent = `${greet}, Rudy`;
+    document.getElementById('todayFullDate').textContent = `${daysFull[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+
+    const todayKey = getLocalTodayKey();
+    const todayEvs = (state.calEvents || []).filter(e => e.dateKey === todayKey);
+    document.getElementById('kpiAgenda').textContent = `${todayEvs.length} acara`;
+    document.getElementById('kpiNextEvent').textContent = todayEvs.length > 0 ? `${todayEvs[0].isAllDay ? 'Seharian' : todayEvs[0].startStr} · ${todayEvs[0].title}` : 'Jadwal kosong hari ini';
+
+    const activeTasks = (state.tasks || []).filter(t => !t.done);
+    const gritMins = (state.grit && state.grit.mins) || 0;
+    document.getElementById('kpiTasks').textContent = `${activeTasks.length} aktif`;
+    document.getElementById('kpiFocusToday').textContent = `Fokus hari ini: ${gritMins} mnt`;
+
+    const habits = state.habits || [];
+    const doneH = habits.filter(h => h.doneToday).length;
+    document.getElementById('kpiHabits').textContent = `${doneH}/${habits.length}`;
+
+    // Update Sidebar Mini Stats
+    document.getElementById('sideFocusMins').textContent = `${gritMins} mnt`;
+    document.getElementById('sideHabitStat').textContent = `${doneH}/${habits.length}`;
+
+    const fin = state.finance || { income: 0, expense: 0, balance: 0 };
+    document.getElementById('kpiMoney').textContent = rupiah(fin.balance);
+    document.getElementById('kpiBudgetSub').textContent = monthlyBudget > 0
+      ? `Sisa budget: ${rupiah(Math.max(0, monthlyBudget - fin.expense))}`
+      : `Keluar: ${rupiah(fin.expense)}`;
+
+    document.getElementById('homeAgendaPreview').innerHTML = todayEvs.slice(0, 4).map(ev => `
+      <div class="event-card" style="border-left-color:${ev.color || '#818cf8'}">
+        <div>
+          <div style="font-size:11px;color:${ev.color || '#818cf8'};font-weight:700">${ev.isAllDay ? 'Seharian' : ev.startStr + ' - ' + ev.endStr} · ${ev.calName || 'Kalender'}</div>
+          <div style="font-weight:700;font-size:14px">${ev.title}</div>
+        </div>
+      </div>
+    `).join('') || '<div style="color:var(--muted);font-size:13px">Tidak ada agenda terjadwal hari ini.</div>';
+
+    document.getElementById('homeTaskPreview').innerHTML = activeTasks.slice(0, 5).map(t => `
+      <div class="item-row">
+        <div class="check-circle" onclick="handleToggleTask('${t.id}')"></div>
+        <div class="item-body" onclick="handleToggleTask('${t.id}')">
+          <div class="item-text">${t.text}</div>
+          ${t.reminder ? `<div class="item-meta"><span class="badge-due">${t.reminder.replace('T', ' ')}</span></div>` : ''}
+        </div>
+      </div>
+    `).join('') || '<div style="color:var(--muted);font-size:13px">Semua tugas selesai!</div>';
+  }
+
+  function submitQuickTask() {
+    const inp = document.getElementById('quickTaskInput');
+    const text = inp.value.trim();
+    if (!text) return;
+    feedback(1.1, 16);
+    if (!Array.isArray(state.tasks)) state.tasks = [];
+    state.tasks.push({ id: 't_' + Date.now(), text, reminder: '', done: false, notified: false, priority: 'Normal' });
+    persistLocal();
+    renderAll();
+    inp.value = '';
+    enqueueAndSync({ fn: 'addTask', text, reminder: '', syncCal: false, priority: 'Normal' });
+  }
+
+  // === 7. CALENDAR RENDERING & LOCAL-FIRST MUTATIONS ===
   function renderCalendar() {
     const todayLocal = getLocalTodayKey();
     const base = new Date(selectedDate + 'T12:00:00');
@@ -1274,7 +1483,7 @@
     }
     persistLocal();
     resetCalForm();
-    renderCalendar();
+    renderAll();
     enqueueAndSync({ fn: 'saveCalendarEvent', payload, anchor: selectedDate });
   }
 
@@ -1313,11 +1522,11 @@
     feedback(0.7, 22);
     state.calEvents = (state.calEvents || []).filter(x => x.id !== eventId);
     persistLocal();
-    renderCalendar();
+    renderAll();
     enqueueAndSync({ fn: 'deleteCalendarEvent', calId, eventId, anchor: selectedDate });
   }
 
-  // === 7. RENDER ALL OTHER TABS ===
+  // === 8. RENDER ALL OTHER TABS ===
   function setTaskFilter(f) {
     taskFilter = f;
     ['ALL', 'ACTIVE', 'DONE'].forEach(k => {
@@ -1327,8 +1536,18 @@
     renderAll();
   }
 
+  function setMonthlyBudget() {
+    const val = prompt('Masukkan batas anggaran pengeluaran bulanan (Rp):', monthlyBudget || 2000000);
+    if (val === null) return;
+    monthlyBudget = Math.max(0, Number(val) || 0);
+    localStorage.setItem(BUDGET_KEY, String(monthlyBudget));
+    feedback(1.1, 14);
+    renderAll();
+  }
+
   function renderAll() {
     ensureSevenDayCharts();
+    renderHomeDashboard();
     renderCalendar();
 
     document.getElementById('gritStat').textContent = `Hari ini: ${(state.grit && state.grit.mins) || 0} mnt (${(state.grit && state.grit.sessions) || 0} sesi)`;
@@ -1389,6 +1608,19 @@
     document.getElementById('finIn').textContent = rupiah(fin.income);
     document.getElementById('finOut').textContent = rupiah(fin.expense);
 
+    // Budget progress bar
+    document.getElementById('budgetUsedLabel').textContent = `Terpakai: ${rupiah(fin.expense)}`;
+    if (monthlyBudget > 0) {
+      const bPct = Math.min(100, Math.round((fin.expense / monthlyBudget) * 100));
+      document.getElementById('budgetLimitLabel').textContent = `${rupiah(monthlyBudget)} (${bPct}%)`;
+      const bar = document.getElementById('budgetBarFill');
+      bar.style.width = bPct + '%';
+      bar.style.background = bPct >= 95 ? 'var(--rose)' : (bPct >= 75 ? 'var(--amber)' : 'var(--emerald)');
+    } else {
+      document.getElementById('budgetLimitLabel').textContent = 'Belum diatur';
+      document.getElementById('budgetBarFill').style.width = '0%';
+    }
+
     const cats = fin.byCategory || [], totalExp = fin.expense || 1;
     const cols = ['var(--rose)', 'var(--amber)', 'var(--sky)', 'var(--violet)', 'var(--emerald)'];
     document.getElementById('finCatChart').innerHTML = cats.map((c, idx) => {
@@ -1406,7 +1638,7 @@
       <div class="item-row"><div class="item-body"><div class="item-meta"><span style="color:var(--amber);font-weight:600">${d.tag}</span></div><div class="item-text">${d.text}</div></div><button class="icon-action" onclick="handleDeleteItem('dumps','BrainDump','${d.id}')">✕</button></div>`).join('') || '<div style="color:var(--muted);font-size:13px">Kepala bersih, belum ada parkir ide.</div>';
   }
 
-  // === 8. LOCAL-FIRST + GOOGLE SHEETS SYNC MUTATIONS ===
+  // === 9. LOCAL-FIRST + GOOGLE SHEETS SYNC MUTATIONS ===
   function submitTask() {
     const inp = document.getElementById('taskInput'), rem = document.getElementById('taskTime');
     const text = inp.value.trim();
@@ -1679,7 +1911,7 @@
     }
   }
 
-  // === 9. FIDGET INITIALIZATION ===
+  // === 10. FIDGET INITIALIZATION ===
   const grid = document.getElementById('bubbleGrid');
   for (let i = 0; i < 16; i++) {
     const wrap = document.createElement('div');
@@ -1780,7 +2012,7 @@
     document.getElementById('tapCount').textContent = `${tapTotal} ketukan`;
   };
 
-  // === 10. BOOTSTRAP ===
+  // === 11. BOOTSTRAP ===
   try {
     const cached = JSON.parse(localStorage.getItem(STORAGE_KEY));
     if (cached) state = Object.assign(state, cached);
